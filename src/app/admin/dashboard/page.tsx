@@ -6,7 +6,8 @@ import Link from "next/link";
 import { ExportCSV } from "@/components/ui/ExportCSV";
 import { SortSelector } from "@/components/ui/SortSelector";
 import { AdminItemsView } from "@/components/ui/AdminItemsView";
-import { Pagination, PAGE_SIZE } from "@/components/ui/Pagination";
+import { Pagination } from "@/components/ui/Pagination";
+import { PAGE_SIZE } from "@/utils/constants";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export const metadata: Metadata = {
@@ -26,11 +27,16 @@ export default async function DashboardPage({
   const page = Math.max(1, Number(params.page) || 1);
 
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   // Fetch Stats
-  const { data: statsData } = await supabase
+  const { data: statsData, error: statsError } = await supabase
     .from("found_items")
-    .select("status, archived_at");
+    .select("status, archived_at, is_public");
+
+  if (statsError) {
+    console.error("Stats fetch error:", statsError);
+  }
 
   const total = statsData?.length || 0;
   const unclaimed = statsData?.filter(i => i.status === 'unclaimed' && !i.archived_at).length || 0;
@@ -84,7 +90,11 @@ export default async function DashboardPage({
   }
 
   const from = (page - 1) * PAGE_SIZE;
-  const { data: items, count } = await dbQuery.range(from, from + PAGE_SIZE - 1);
+  const { data: items, count, error: itemsError } = await dbQuery.range(from, from + PAGE_SIZE - 1);
+
+  if (itemsError) {
+    console.error("Items fetch error:", itemsError);
+  }
 
   const totalFiltered = count ?? 0;
 

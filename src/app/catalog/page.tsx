@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
 import { ItemCard, type Item } from "@/components/ui/ItemCard";
 import { Search, LogOut } from "lucide-react";
-import { Pagination, PAGE_SIZE } from "@/components/ui/Pagination";
+import { Pagination } from "@/components/ui/Pagination";
+import { PAGE_SIZE } from "@/utils/constants";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export const metadata: Metadata = {

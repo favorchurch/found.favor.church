@@ -3,14 +3,11 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
-
-const PAGE_SIZE = 24;
+import { PAGE_SIZE } from "@/utils/constants";
 
 interface PaginationProps {
   total: number;
 }
-
-export { PAGE_SIZE };
 
 export function Pagination({ total }: PaginationProps) {
   const router = useRouter();
