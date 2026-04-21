@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { ItemCard, type Item } from "@/components/ui/ItemCard";
-import { Search } from "lucide-react";
+import { Search, LogOut } from "lucide-react";
 
 export default async function CatalogPage({
   searchParams,
@@ -29,6 +29,7 @@ export default async function CatalogPage({
   }
 
   const { data: items, error } = await dbQuery;
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (error) {
     console.error("Error fetching items:", {
@@ -54,12 +55,24 @@ export default async function CatalogPage({
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <a
-            href="/login"
-            className="text-[10px] font-mono text-text-dim hover:text-brand uppercase transition-colors"
-          >
-            Staff Login
-          </a>
+          {user ? (
+            <form action="/auth/signout" method="POST">
+              <button 
+                type="submit"
+                className="flex items-center gap-2 text-[10px] font-mono text-red-500/70 hover:text-red-500 uppercase transition-colors"
+              >
+                <LogOut className="h-3 w-3" />
+                Logout
+              </button>
+            </form>
+          ) : (
+            <a
+              href="/login"
+              className="text-[10px] font-mono text-text-dim hover:text-brand uppercase transition-colors"
+            >
+              Staff Login
+            </a>
+          )}
         </div>
       </header>
 

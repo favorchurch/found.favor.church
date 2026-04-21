@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import { createClient } from '@/utils/supabase/client'
-import { LogIn } from 'lucide-react'
+import { createClient } from "@/utils/supabase/client";
+import { LogIn } from "lucide-react";
 
 export default function LoginPage() {
-  const supabase = createClient()
+  const supabase = createClient();
 
   const handleLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
-    })
+    });
 
     if (error) {
-      console.error('Error logging in:', error.message)
+      console.error("Error logging in:", error.message);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-bg px-6">
@@ -29,7 +29,7 @@ export default function LoginPage() {
         </div>
         <div className="space-y-3">
           <h1 className="font-mono text-xl font-bold tracking-widest text-text-main uppercase">
-            Lost<span className="text-brand">&Found</span>
+            <span className="text-brand">{"LOST"}</span>{"&FOUND"}
           </h1>
           <p className="text-sm text-text-muted">
             Internal tracker for church staff and volunteers.
@@ -49,5 +49,5 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
-  )
+  );
 }

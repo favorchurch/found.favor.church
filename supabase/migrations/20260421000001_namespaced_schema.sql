@@ -2,8 +2,9 @@
 drop schema if exists found cascade;
 
 -- Create items table in public schema with 'found_' prefix for namespacing
-drop table if exists public.found_items;
+-- Migrate existing data from items if the old table exists
 create table public.found_items (
+
   id uuid primary key default gen_random_uuid(),
   name text not null,
   description text,
@@ -31,6 +32,18 @@ create trigger set_found_updated_at
 before update on public.found_items
 for each row
 execute procedure public.handle_found_updated_at();
+
+-- Migrate data from old items table if it exists, then drop it
+do $$
+begin
+  if exists (select 1 from information_schema.tables where table_name = 'items' and table_schema = 'public') then
+    insert into public.found_items (id, name, description, date_found, location, status, photo_path, is_public, created_at, updated_at, archived_at)
+    select id, name, description, date_found, location, status, photo_path, is_public, created_at, updated_at, archived_at
+    from public.items
+    on conflict (id) do nothing;
+    drop table public.items;
+  end if;
+end $$;
 
 -- Enable RLS
 alter table public.found_items enable row level security;

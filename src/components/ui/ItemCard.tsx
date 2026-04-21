@@ -1,3 +1,5 @@
+"use client";
+
 import { Calendar, MapPin, CameraOff } from "lucide-react";
 import { format } from "date-fns";
 import { StatusBadge, type ItemStatus } from "./StatusBadge";

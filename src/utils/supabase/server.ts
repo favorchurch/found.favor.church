@@ -24,7 +24,6 @@ export async function createClient() {
     supabaseUrl,
     supabaseKey,
     {
-      },
       cookies: {
         get(name: string) {
           return cookieStore.get(name)?.value

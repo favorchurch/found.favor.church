@@ -1,9 +1,10 @@
 import { createClient } from "@/utils/supabase/server";
-import { ItemCard, type Item } from "@/components/ui/ItemCard";
-import { BadgeCheck, Inbox, Trash2, ArrowRightCircle, Search, Download, SortAsc } from "lucide-react";
+import { type Item } from "@/components/ui/ItemCard";
+import { BadgeCheck, Inbox, Trash2, ArrowRightCircle, Search, PlusCircle, Globe } from "lucide-react";
 import Link from "next/link";
 import { ExportCSV } from "@/components/ui/ExportCSV";
 import { SortSelector } from "@/components/ui/SortSelector";
+import { AdminItemsView } from "@/components/ui/AdminItemsView";
 
 export default async function DashboardPage({
   searchParams,
@@ -84,7 +85,21 @@ export default async function DashboardPage({
           <p className="text-[10px] text-text-dim uppercase tracking-widest mt-1">Admin Dashboard for Lost & Found items</p>
         </div>
         <div className="flex items-center gap-3">
+          <Link 
+            href="/catalog" 
+            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-widest border border-border-main bg-surface hover:bg-surface-hover hover:border-border-hover text-text-muted hover:text-text-main transition-all"
+          >
+            <Globe className="h-3.5 w-3.5" />
+            Public Catalog
+          </Link>
           <ExportCSV items={(items || []) as Item[]} />
+          <Link 
+            href="/admin/items/new" 
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-mono font-bold uppercase tracking-widest bg-brand text-black hover:bg-brand-dim transition-all shadow-lg shadow-brand/10"
+          >
+            <PlusCircle className="h-4 w-4" />
+            New Entry
+          </Link>
         </div>
       </div>
 
@@ -124,22 +139,8 @@ export default async function DashboardPage({
         </div>
       </div>
 
-      {/* Items Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {items && items.length > 0 ? (
-          items.map((item) => (
-            <Link key={item.id} href={`/admin/items/${item.id}`}>
-              <ItemCard item={item as Item} admin />
-            </Link>
-          ))
-        ) : (
-          <div className="col-span-full h-80 flex flex-col items-center justify-center rounded-xl border border-dashed border-border-main text-center bg-surface/30">
-            <Inbox className="h-12 w-12 text-text-dim mb-4 opacity-20" />
-            <p className="text-text-dim text-sm font-mono uppercase tracking-widest">No entries match your search</p>
-            <Link href="/admin/dashboard" className="mt-4 text-[10px] text-brand border border-brand/20 px-3 py-1.5 rounded hover:bg-brand/10 transition-colors uppercase font-mono tracking-widest">Clear Filters</Link>
-          </div>
-        )}
-      </div>
+      {/* Items Section */}
+      <AdminItemsView items={(items || []) as Item[]} />
 
       {/* Archive Section */}
       <div className="p-8 rounded-xl border border-red-500/10 bg-red-500/5 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -174,7 +175,7 @@ function StatCard({ label, value, color, icon }: { label: string; value: number;
   );
 }
 
-function FilterButton({ active, label, status, currentParams }: { active: boolean; label: string; status: string; currentParams: any }) {
+function FilterButton({ active, label, status, currentParams }: { active: boolean; label: string; status: string; currentParams: { q?: string; status?: string; sort?: string } }) {
   const params = new URLSearchParams(currentParams);
   params.set("status", status);
   

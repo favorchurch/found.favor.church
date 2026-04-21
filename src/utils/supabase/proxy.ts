@@ -20,7 +20,6 @@ export async function updateSession(request: NextRequest) {
     supabaseUrl,
     supabaseKey,
     {
-      },
       cookies: {
         get(name: string) {
           return request.cookies.get(name)?.value
@@ -31,32 +30,35 @@ export async function updateSession(request: NextRequest) {
             value,
             ...options,
           })
+          // Create the next response with updated request headers
           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
           })
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          })
+          // Apply ALL cookies from the request to the response to ensure none are lost
+          // if multiple cookies are set during the same session update.
+          request.cookies.getAll().forEach((cookie) => {
+            response.cookies.set(cookie.name, cookie.value)
+          });
         },
         remove(name: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
+          request.cookies.delete(name)
           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
           })
+          // Ensure all cookies (except the removed one) are present
+          request.cookies.getAll().forEach((cookie) => {
+            response.cookies.set(cookie.name, cookie.value)
+          });
+          // Explicitly set the removal on the response
           response.cookies.set({
             name,
             value: '',
             ...options,
+            maxAge: 0,
           })
         },
       },
@@ -69,7 +71,17 @@ export async function updateSession(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/admin') && !user) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    return NextResponse.redirect(url)
+    
+    // Create redirect response
+    const redirectResponse = NextResponse.redirect(url)
+    
+    // IMPORTANT: Transfer all session cookies to the redirect response
+    // otherwise the login/session refresh will be lost on the next request.
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value)
+    })
+    
+    return redirectResponse
   }
 
   return response
