@@ -13,7 +13,7 @@ export default async function EditItemPage({
   const supabase = await createClient();
 
   const { data: item, error } = await supabase
-    .from("items")
+    .from("found_items")
     .select("*")
     .eq("id", id)
     .single();

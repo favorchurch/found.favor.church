@@ -14,7 +14,7 @@ export default async function CatalogPage({
   const supabase = await createClient();
 
   let dbQuery = supabase
-    .from("items")
+    .from("found_items")
     .select("*")
     .eq("is_public", true)
     .is("archived_at", null)
@@ -31,7 +31,12 @@ export default async function CatalogPage({
   const { data: items, error } = await dbQuery;
 
   if (error) {
-    console.error("Error fetching items:", error);
+    console.error("Error fetching items:", {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code
+    });
   }
 
   return (

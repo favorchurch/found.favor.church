@@ -11,7 +11,7 @@ export async function POST() {
   const thirtyDaysAgo = subDays(new Date(), 30).toISOString().split('T')[0];
 
   const { error } = await supabase
-    .from("items")
+    .from("found_items")
     .update({ archived_at: new Date().toISOString() })
     .eq("status", "claimed")
     .lt("date_found", thirtyDaysAgo)

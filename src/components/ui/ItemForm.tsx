@@ -62,13 +62,13 @@ export function ItemForm({ initialData }: ItemFormProps) {
 
       if (initialData?.id) {
         const { error } = await supabase
-          .from('items')
+          .from('found_items')
           .update(itemData)
           .eq('id', initialData.id)
         if (error) throw error
       } else {
         const { error } = await supabase
-          .from('items')
+          .from('found_items')
           .insert([{ ...itemData }])
         if (error) throw error
       }
@@ -103,7 +103,7 @@ export function ItemForm({ initialData }: ItemFormProps) {
             <input
               required
               name="name"
-              defaultValue={initialData?.name}
+              defaultValue={initialData?.name ?? ''}
               placeholder="e.g. Black Umbrella"
               className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm text-text-main focus:border-brand focus:outline-none transition-colors"
             />
@@ -113,7 +113,7 @@ export function ItemForm({ initialData }: ItemFormProps) {
             <label className="font-mono text-[10px] uppercase tracking-widest text-text-dim">Description</label>
             <textarea
               name="description"
-              defaultValue={initialData?.description}
+              defaultValue={initialData?.description ?? ''}
               placeholder="Features, color, brand..."
               rows={3}
               className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm text-text-main focus:border-brand focus:outline-none transition-colors resize-none"
@@ -127,7 +127,7 @@ export function ItemForm({ initialData }: ItemFormProps) {
                 required
                 type="date"
                 name="date_found"
-                defaultValue={initialData?.date_found || new Date().toISOString().split('T')[0]}
+                defaultValue={initialData?.date_found ?? new Date().toISOString().split('T')[0]}
                 className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm text-text-main focus:border-brand focus:outline-none transition-colors"
               />
             </div>
@@ -149,7 +149,7 @@ export function ItemForm({ initialData }: ItemFormProps) {
             <label className="font-mono text-[10px] uppercase tracking-widest text-text-dim">Location Found</label>
             <input
               name="location"
-              defaultValue={initialData?.location}
+              defaultValue={initialData?.location ?? ''}
               placeholder="e.g. Main Sanctuary, 2nd Floor"
               className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm text-text-main focus:border-brand focus:outline-none transition-colors"
             />
