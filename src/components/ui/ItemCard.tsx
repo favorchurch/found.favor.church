@@ -1,27 +1,25 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
+import Link from "next/link";
 import {
   Calendar,
   MapPin,
   CameraOff,
-  Globe,
-  Lock,
   Edit2,
   Trash2,
   ChevronDown,
-  Check,
-  X,
   Eye,
   EyeOff,
 } from "lucide-react";
 import { format } from "date-fns";
 import type { ItemStatus } from "./StatusBadge";
 import { cn } from "@/utils/cn";
-import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { DeleteConfirmModal } from "./DeleteConfirmModal";
+import { ConfirmModal } from "./ConfirmModal";
+import { getPhotoUrl } from "@/utils/photo";
+import { upsertItem, deleteItem } from "@/app/admin/actions/items";
 
 export interface Item {
   id: string;
@@ -53,20 +51,13 @@ export function ItemCard({
   admin = false,
 }: ItemCardProps) {
   const router = useRouter();
-  const supabase = createClient();
   const [formData, setFormData] = useState<Partial<Item>>({});
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Derive current display data (mix of saved item and unsaved formData)
   const currentItem = { ...item, ...formData };
   const hasChanges = Object.keys(formData).length > 0;
-
-  const getPhotoUrl = (path: string | null) => {
-    if (!path) return null;
-    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/item-images/${path}`;
-  };
 
   const photoUrl = getPhotoUrl(currentItem.photo_path);
 
@@ -85,7 +76,6 @@ export function ItemCard({
       return;
     }
 
-    // Validation
     if (currentItem.status === "claimed" && !currentItem.claimed_by) {
       toast.error("Claimant name is required");
       return;
@@ -95,71 +85,74 @@ export function ItemCard({
       return;
     }
 
-    setLoading(true);
-    try {
-      const updates = { ...formData };
+    const updates = { ...item, ...formData };
 
-      if (updates.status === "claimed") {
-        updates.claimed_date = updates.claimed_date || new Date().toISOString();
-      } else if (updates.status === "disposed") {
-        updates.disposed_date =
-          updates.disposed_date || new Date().toISOString();
-      }
-
-      const { error } = await supabase
-        .from("found_items")
-        .update(updates)
-        .eq("id", item.id);
-
-      if (error) throw error;
-      toast.success("Item updated seamlessly!");
-      setFormData({});
-      setIsEditing(false);
-      router.refresh();
-    } catch (e) {
-      toast.error("Failed to update item");
-    } finally {
-      setLoading(false);
+    if (updates.status === "claimed") {
+      updates.claimed_date = updates.claimed_date || new Date().toISOString();
+    } else if (updates.status === "disposed") {
+      updates.disposed_date =
+        updates.disposed_date || new Date().toISOString();
     }
+
+    setFormData({});
+    setIsEditing(false);
+    setLoading(true);
+
+    toast.promise(upsertItem(updates), {
+      loading: "Updating item...",
+      success: () => {
+        router.refresh();
+        return "Item updated seamlessly!";
+      },
+      error: "Failed to update item",
+      finally: () => setLoading(false),
+    });
   };
 
-  const togglePrivacy = async () => {
+  const togglePrivacy = () => {
     const next = !currentItem.is_public;
     setFormData((prev) => ({ ...prev, is_public: next }));
-    try {
-      const { error } = await supabase
-        .from("found_items")
-        .update({ is_public: next })
-        .eq("id", item.id);
-      if (error) throw error;
-      toast.success(next ? "Item is now public" : "Item is now private");
-      router.refresh();
-    } catch {
-      setFormData((prev) => ({ ...prev, is_public: !next }));
-      toast.error("Failed to update privacy");
-    }
+    setLoading(true);
+
+    toast.promise(upsertItem({ ...item, is_public: next }), {
+      loading: "Updating privacy...",
+      success: () => {
+        router.refresh();
+        return next ? "Item is now public" : "Item is now private";
+      },
+      error: () => {
+        setFormData((prev) => ({ ...prev, is_public: !next }));
+        return "Failed to update privacy";
+      },
+      finally: () => setLoading(false),
+    });
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
+    setShowDeleteModal(false);
     setLoading(true);
-    try {
-      if (item.photo_path) {
-        await supabase.storage.from("item-images").remove([item.photo_path]);
-      }
-      const { error } = await supabase
-        .from("found_items")
-        .delete()
-        .eq("id", item.id);
-      if (error) throw error;
 
-      toast.success("Item deleted");
-      setShowDeleteModal(false);
-      router.refresh();
-    } catch (e) {
-      toast.error("Failed to delete item");
-    } finally {
-      setLoading(false);
-    }
+    toast.promise(deleteItem(item.id, item.photo_path), {
+      loading: "Deleting item...",
+      success: () => {
+        router.refresh();
+        return "Item deleted";
+      },
+      error: "Failed to delete item",
+      finally: () => setLoading(false),
+    });
+  };
+
+  const statusStyles = {
+    unclaimed: "text-yellow-500 border-yellow-500/20",
+    claimed: "text-emerald-500 border-emerald-500/20",
+    disposed: "text-red-500 border-red-500/20",
+  };
+
+  const statusIcons: Record<ItemStatus, string> = {
+    unclaimed: "🟡 ",
+    claimed: "✅ ",
+    disposed: "❌ ",
   };
 
   return (
@@ -210,7 +203,7 @@ export function ItemCard({
           </div>
         )}
 
-        {/* Image Section - Clicking Image Opens Full Modal */}
+        {/* Image Section */}
         <div
           onClick={() => {
             if (!isEditing && onClick) {
@@ -245,7 +238,7 @@ export function ItemCard({
             </div>
           )}
 
-          {/* Status Badge / Select — lower right inside image */}
+          {/* Status Badge — lower right inside image, links to edit modal */}
           <div
             className="absolute bottom-2 right-2 z-10"
             onClick={(e) => {
@@ -262,32 +255,43 @@ export function ItemCard({
                   }
                   className={cn(
                     "text-[10px] font-mono font-bold tracking-wider uppercase border border-white/20 rounded-lg cursor-pointer appearance-none pl-2 pr-7 py-1 outline-none bg-black/80 backdrop-blur-md text-white transition-colors focus:ring-1 focus:ring-brand/50 w-[125px]",
-                    currentItem.status === "unclaimed" && "text-yellow-500",
-                    currentItem.status === "claimed" && "text-emerald-500",
-                    currentItem.status === "disposed" && "text-red-500",
+                    statusStyles[currentItem.status],
                   )}
                 >
-                  <option value="unclaimed">🟡 Unclaimed</option>
-                  <option value="claimed">✅ Claimed</option>
-                  <option value="disposed">❌ Disposed</option>
+                  <option value="unclaimed">
+                    {"🟡"} Unclaimed
+                  </option>
+                  <option value="claimed">
+                    {"✅"} Claimed
+                  </option>
+                  <option value="disposed">
+                    {"❌"} Disposed
+                  </option>
                 </select>
                 <ChevronDown className="h-3 w-3 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 text-white" />
               </div>
+            ) : admin ? (
+              <Link
+                href={`/admin/items/${item.id}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase border shadow-sm backdrop-blur-md bg-black/80 hover:bg-black/90 transition-colors",
+                  statusStyles[currentItem.status],
+                )}
+              >
+                {statusIcons[currentItem.status]}
+                {currentItem.status}
+              </Link>
             ) : (
               <div
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase border shadow-sm backdrop-blur-md bg-black/80",
-                  currentItem.status === "unclaimed" &&
-                    "text-yellow-500 border-yellow-500/20",
-                  currentItem.status === "claimed" &&
-                    "text-emerald-500 border-emerald-500/20",
-                  currentItem.status === "disposed" &&
-                    "text-red-500 border-red-500/20",
+                  statusStyles[currentItem.status],
                 )}
               >
-                {currentItem.status === "unclaimed" && "🟡 "}
-                {currentItem.status === "claimed" && "✅ "}
-                {currentItem.status === "disposed" && "❌ "}
+                {statusIcons[currentItem.status]}
                 {currentItem.status}
               </div>
             )}
@@ -450,12 +454,13 @@ export function ItemCard({
         </div>
       </div>
 
-      <DeleteConfirmModal
+      <ConfirmModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDelete}
         title="Delete Item Permanently"
-        itemName={currentItem.name || "this item"}
+        description={`Are you sure you want to delete "${currentItem.name}"? This action cannot be undone.`}
+        confirmText="Delete"
         loading={loading}
       />
     </>

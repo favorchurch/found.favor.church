@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Providers } from "./providers";
 import "./globals.css";
 
 const plexSans = IBM_Plex_Sans({
@@ -29,8 +30,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${plexSans.variable} ${plexMono.variable} antialiased`}>
       <body className="min-h-screen bg-bg text-text-main selection:bg-brand/30">
-        <Toaster position="bottom-right" theme="dark" toastOptions={{ style: { background: '#1c1c1c', border: '1px solid #333' } }} />
-        {children}
+        <Providers>
+          <Toaster position="bottom-right" theme="dark" toastOptions={{ style: { background: '#1c1c1c', border: '1px solid #333' } }} />
+          {children}
+        </Providers>
       </body>
     </html>
   );

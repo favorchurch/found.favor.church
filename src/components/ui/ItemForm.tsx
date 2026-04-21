@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Camera, Save, Globe, Lock } from "lucide-react";
+import { Trash2, Save, Camera, Globe, Lock } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useRouter } from "next/navigation";
 import { type ItemStatus } from "@/components/ui/StatusBadge";
 import { createClient } from "@/utils/supabase/client";
 import { type Item } from "@/components/ui/ItemCard";
 import imageCompression from "browser-image-compression";
-import { Trash2 } from "lucide-react";
-import { DeleteConfirmModal } from "./DeleteConfirmModal";
+import { ConfirmModal } from "./ConfirmModal";
+import { getPhotoUrl } from "@/utils/photo";
+import { upsertItem, deleteItem } from "@/app/admin/actions/items";
+import { toast } from "sonner";
 
 interface ItemFormProps {
   initialData?: Item & {
@@ -29,12 +31,11 @@ export function ItemForm({ initialData }: ItemFormProps) {
   const [status, setStatus] = useState<ItemStatus>(
     initialData?.status || "unclaimed",
   );
+  const [removedPhoto, setRemovedPhoto] = useState(false);
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(
-    initialData?.photo_path
-      ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/item-images/${initialData.photo_path}`
-      : null,
+    getPhotoUrl(initialData?.photo_path ?? null),
   );
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -54,7 +55,7 @@ export function ItemForm({ initialData }: ItemFormProps) {
     const disposed_date = formData.get("disposed_date") as string | null;
     const disposed_by = formData.get("disposed_by") as string | null;
 
-    try {
+    const promise = async () => {
       let photo_path = initialData?.photo_path || null;
 
       // Handle Image Upload
@@ -74,9 +75,15 @@ export function ItemForm({ initialData }: ItemFormProps) {
             .from("item-images")
             .remove([initialData.photo_path]);
         }
+      } else if (removedPhoto && initialData?.photo_path) {
+         await supabase.storage
+          .from("item-images")
+          .remove([initialData.photo_path]);
+        photo_path = null;
       }
 
       const itemData: any = {
+        id: initialData?.id,
         name,
         description,
         date_found,
@@ -84,70 +91,50 @@ export function ItemForm({ initialData }: ItemFormProps) {
         status: currentStatus,
         is_public,
         photo_path,
-        updated_at: new Date().toISOString(),
+        claimed_date: currentStatus === "claimed" ? (claimed_date || new Date().toISOString()) : null,
+        claimed_by: currentStatus === "claimed" ? (claimed_by || "Unknown") : null,
+        disposed_date: currentStatus === "disposed" ? (disposed_date || new Date().toISOString()) : null,
+        disposed_by: currentStatus === "disposed" ? (disposed_by || "Unknown") : null,
       };
 
-      if (currentStatus === "claimed") {
-        itemData.claimed_date = claimed_date || new Date().toISOString();
-        itemData.claimed_by = claimed_by || "Unknown";
-      } else if (currentStatus === "disposed") {
-        itemData.disposed_date = disposed_date || new Date().toISOString();
-        itemData.disposed_by = disposed_by || "Unknown";
-      }
-
-      if (initialData?.id) {
-        const { error } = await supabase
-          .from("found_items")
-          .update(itemData)
-          .eq("id", initialData.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("found_items")
-          .insert([{ ...itemData }]);
-        if (error) throw error;
-      }
-
+      await upsertItem(itemData);
       router.push("/admin/dashboard");
       router.refresh();
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      alert(`Error saving item: ${message}`);
-    } finally {
-      setLoading(false);
-    }
+    };
+
+    toast.promise(promise(), {
+      loading: "Saving item...",
+      success: "Item saved successfully",
+      error: (err) => `Error saving item: ${err.message}`,
+    });
+    
+    setLoading(false);
   };
 
   const handleDelete = async () => {
     if (!initialData?.id) return;
     setLoading(true);
-    try {
-      if (initialData.photo_path) {
-        await supabase.storage
-          .from("item-images")
-          .remove([initialData.photo_path]);
-      }
-      const { error } = await supabase
-        .from("found_items")
-        .delete()
-        .eq("id", initialData.id);
-
-      if (error) throw error;
-
+    
+    const promise = async () => {
+      await deleteItem(initialData.id, initialData.photo_path);
       router.push("/admin/dashboard");
       router.refresh();
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      alert(`Error deleting item: ${message}`);
-    } finally {
-      setLoading(false);
-      setShowDeleteModal(false);
-    }
+    };
+
+    toast.promise(promise(), {
+      loading: "Deleting item...",
+      success: "Item deleted successfully",
+      error: (err) => `Error deleting item: ${err.message}`,
+    });
+
+    setLoading(false);
+    setShowDeleteModal(false);
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setRemovedPhoto(false);
       setCompressing(true);
       try {
         const options = {
@@ -376,11 +363,25 @@ export function ItemForm({ initialData }: ItemFormProps) {
                   alt="Preview"
                   className="h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Camera className="h-8 w-8 text-white" />
-                  <span className="ml-2 text-white font-mono text-xs font-bold uppercase tracking-widest">
-                    Change Photo
-                  </span>
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                  <button
+                    type="button"
+                    className="p-2 bg-white/20 hover:bg-red-500 rounded-full transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setRemovedPhoto(true);
+                      setImagePreview(null);
+                      setImageFile(null);
+                    }}
+                  >
+                    <Trash2 className="h-6 w-6 text-white" />
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <Camera className="h-6 w-6 text-white" />
+                    <span className="text-white font-mono text-xs font-bold uppercase tracking-widest">
+                      Change
+                    </span>
+                  </div>
                 </div>
               </>
             ) : (
@@ -454,12 +455,13 @@ export function ItemForm({ initialData }: ItemFormProps) {
         </div>
       </div>
 
-      <DeleteConfirmModal
+      <ConfirmModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDelete}
         title="Delete Item"
-        itemName={initialData?.name || "this item"}
+        description={`Are you sure you want to delete "${initialData?.name || "this item"}"? This action cannot be undone.`}
+        confirmText="Delete"
         loading={loading}
       />
     </form>

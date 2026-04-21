@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
 import { type Item } from "@/components/ui/ItemCard";
 import { BadgeCheck, Inbox, Trash2, ArrowRightCircle, Search, PlusCircle, Globe } from "lucide-react";
@@ -5,16 +6,24 @@ import Link from "next/link";
 import { ExportCSV } from "@/components/ui/ExportCSV";
 import { SortSelector } from "@/components/ui/SortSelector";
 import { AdminItemsView } from "@/components/ui/AdminItemsView";
+import { Pagination, PAGE_SIZE } from "@/components/ui/Pagination";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+
+export const metadata: Metadata = {
+  title: "Dashboard | Lost & Found — Favor Church",
+  description: "Admin dashboard for managing lost and found items.",
+};
 
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; sort?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const query = params.q || "";
   const statusFilter = params.status || "all";
   const sortBy = params.sort || "created_at_desc";
+  const page = Math.max(1, Number(params.page) || 1);
 
   const supabase = await createClient();
 
@@ -59,10 +68,10 @@ export default async function DashboardPage({
       ascending = false;
   }
 
-  // Fetch Items
+  // Fetch Items with pagination
   let dbQuery = supabase
     .from("found_items")
-    .select("*")
+    .select("*", { count: "exact" })
     .is("archived_at", null)
     .order(sortField, { ascending });
 
@@ -74,7 +83,10 @@ export default async function DashboardPage({
     dbQuery = dbQuery.eq("status", statusFilter);
   }
 
-  const { data: items } = await dbQuery;
+  const from = (page - 1) * PAGE_SIZE;
+  const { data: items, count } = await dbQuery.range(from, from + PAGE_SIZE - 1);
+
+  const totalFiltered = count ?? 0;
 
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto">
@@ -85,16 +97,16 @@ export default async function DashboardPage({
           <p className="text-[10px] text-text-dim uppercase tracking-widest mt-1">Manage and track lost and found items</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link 
-            href="/catalog" 
+          <Link
+            href="/catalog"
             className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-widest border border-border-main bg-surface hover:bg-surface-hover hover:border-border-hover text-text-muted hover:text-text-main transition-all"
           >
             <Globe className="h-3.5 w-3.5" />
             Public Catalog
           </Link>
           <ExportCSV items={(items || []) as Item[]} />
-          <Link 
-            href="/admin/items/new" 
+          <Link
+            href="/admin/items/new"
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-mono font-bold uppercase tracking-widest bg-brand text-black hover:bg-brand-dim transition-all shadow-lg shadow-brand/10"
           >
             <PlusCircle className="h-4 w-4" />
@@ -119,7 +131,7 @@ export default async function DashboardPage({
           <FilterButton active={statusFilter === 'claimed'} label="Claimed" status="claimed" currentParams={params} />
           <FilterButton active={statusFilter === 'disposed'} label="Disposed" status="disposed" currentParams={params} />
         </div>
-        
+
         <div className="flex flex-col md:flex-row items-center gap-4">
           {/* Search */}
           <form className="relative w-full md:w-64">
@@ -140,7 +152,11 @@ export default async function DashboardPage({
       </div>
 
       {/* Items Section */}
-      <AdminItemsView items={(items || []) as Item[]} />
+      <ErrorBoundary>
+        <AdminItemsView items={(items || []) as Item[]} />
+      </ErrorBoundary>
+
+      <Pagination total={totalFiltered} />
     </div>
   );
 }
@@ -162,13 +178,14 @@ function StatCard({ label, value, color, icon }: { label: string; value: number;
 function FilterButton({ active, label, status, currentParams }: { active: boolean; label: string; status: string; currentParams: { q?: string; status?: string; sort?: string } }) {
   const params = new URLSearchParams(currentParams);
   params.set("status", status);
-  
+  params.delete("page");
+
   return (
     <Link
       href={`?${params.toString()}`}
       className={`px-4 py-2 rounded-lg text-[10px] font-mono font-bold uppercase tracking-widest transition-all border ${
-        active 
-          ? "bg-brand/10 border-brand/40 text-brand shadow-lg shadow-brand/5" 
+        active
+          ? "bg-brand/10 border-brand/40 text-brand shadow-lg shadow-brand/5"
           : "text-text-dim border-border-hover/50 hover:bg-surface-hover hover:text-text-muted hover:border-border-hover"
       }`}
     >

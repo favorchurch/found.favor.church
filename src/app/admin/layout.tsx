@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { isAdmin } from "@/utils/admin";
 
 export default async function AdminLayout({
   children,
@@ -14,6 +15,10 @@ export default async function AdminLayout({
 
   if (!user) {
     redirect("/login");
+  }
+
+  if (!isAdmin(user.email)) {
+    redirect("/catalog");
   }
 
   return (

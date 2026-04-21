@@ -1,14 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { Trash2, ShieldAlert, Archive, RefreshCw, AlertTriangle, CheckCircle2, Search } from 'lucide-react'
 import { toast } from 'sonner'
+import { archiveOldItems } from '@/app/admin/actions/items'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 
 export default function CleanupPage() {
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(false)
+  const [archiving, setArchiving] = useState(false)
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
   const [orphans, setOrphans] = useState<string[]>([])
   const [stats, setStats] = useState({ totalFiles: 0, linkedFiles: 0 })
 
@@ -69,6 +73,19 @@ export default function CleanupPage() {
       toast.error("Failed to delete orphaned images")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleArchive = async () => {
+    setArchiving(true)
+    setShowArchiveConfirm(false)
+    try {
+      await archiveOldItems()
+      toast.success("Archival sequence complete")
+    } catch (error: any) {
+      toast.error(`Archival failed: ${error.message}`)
+    } finally {
+      setArchiving(false)
     }
   }
 
@@ -173,18 +190,29 @@ export default function CleanupPage() {
               </div>
             </div>
 
-            <form action="/admin/actions/archive" method="POST">
-              <button 
-                type="submit"
-                className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-brand text-black text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-brand-dim transition-all shadow-lg shadow-brand/10"
-              >
-                <Archive className="h-4 w-4" />
-                Run Archival Sequence
-              </button>
-            </form>
+            <button 
+              type="button"
+              disabled={archiving}
+              onClick={() => setShowArchiveConfirm(true)}
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-brand text-black text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-brand-dim transition-all shadow-lg shadow-brand/10 disabled:opacity-50"
+            >
+              <Archive className="h-4 w-4" />
+              {archiving ? 'Processing...' : 'Run Archival Sequence'}
+            </button>
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showArchiveConfirm}
+        onClose={() => setShowArchiveConfirm(false)}
+        onConfirm={handleArchive}
+        title="Confirm Archival"
+        description="This will move all claimed and disposed items found more than 30 days ago to the archive. These items will no longer appear on the main dashboard."
+        confirmText="Archive Now"
+        variant="warning"
+        loading={archiving}
+      />
     </div>
   )
 }

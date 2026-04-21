@@ -1,34 +1,46 @@
+import type { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
 import { ItemCard, type Item } from "@/components/ui/ItemCard";
 import { Search, LogOut } from "lucide-react";
+import { Pagination, PAGE_SIZE } from "@/components/ui/Pagination";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+
+export const metadata: Metadata = {
+  title: "Public Catalog | Lost & Found — Favor Church",
+  description: "Browse items found at Favor Church. If you recognize an item, please visit the information desk.",
+};
 
 export default async function CatalogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const query = params.q || "";
   const statusFilter = params.status || "all";
+  const page = Math.max(1, Number(params.page) || 1);
 
   const supabase = await createClient();
 
-  let dbQuery = supabase
+  let baseQuery = supabase
     .from("found_items")
-    .select("*")
+    .select("*", { count: "exact" })
     .eq("is_public", true)
     .is("archived_at", null)
     .order("date_found", { ascending: false });
 
   if (query) {
-    dbQuery = dbQuery.ilike("name", `%${query}%`);
+    baseQuery = baseQuery.ilike("name", `%${query}%`);
   }
 
   if (statusFilter !== "all") {
-    dbQuery = dbQuery.eq("status", statusFilter);
+    baseQuery = baseQuery.eq("status", statusFilter);
   }
 
-  const { data: items, error } = await dbQuery;
+  const from = (page - 1) * PAGE_SIZE;
+  const { data: items, count, error } = await baseQuery
+    .range(from, from + PAGE_SIZE - 1);
+
   const { data: { user } } = await supabase.auth.getUser();
 
   if (error) {
@@ -36,9 +48,11 @@ export default async function CatalogPage({
       message: error.message,
       details: error.details,
       hint: error.hint,
-      code: error.code
+      code: error.code,
     });
   }
+
+  const total = count ?? 0;
 
   return (
     <div className="flex min-h-screen flex-col bg-bg">
@@ -57,14 +71,16 @@ export default async function CatalogPage({
         <div className="flex items-center gap-4">
           {user ? (
             <>
-              <a
-                href="/admin/dashboard"
-                className="text-[10px] font-mono text-brand hover:text-brand-bright uppercase transition-colors"
-              >
-                Admin Dashboard
-              </a>
+              {user.email && (await import("@/utils/admin")).isAdmin(user.email) && (
+                <a
+                  href="/admin/dashboard"
+                  className="text-[10px] font-mono text-brand hover:text-brand-bright uppercase transition-colors"
+                >
+                  Admin Dashboard
+                </a>
+              )}
               <form action="/auth/signout" method="POST">
-                <button 
+                <button
                   type="submit"
                   className="flex items-center gap-2 text-[10px] font-mono text-red-500/70 hover:text-red-500 uppercase transition-colors"
                 >
@@ -105,24 +121,29 @@ export default async function CatalogPage({
                   placeholder="Search and press enter..."
                   className="w-full rounded-lg border border-border-main bg-surface px-10 py-2.5 text-xs text-text-main focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
                 />
+                {statusFilter !== "all" && <input type="hidden" name="status" value={statusFilter} />}
               </form>
             </div>
           </div>
 
           {/* Grid */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {items && items.length > 0 ? (
-              items.map((item) => <ItemCard key={item.id} item={item as Item} />)
-            ) : (
-              <div className="col-span-full flex flex-col items-center justify-center rounded-xl border border-dashed border-border-main py-20 text-center">
-                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface-hover">
-                  <Search className="h-6 w-6 text-text-dim" />
+          <ErrorBoundary>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {items && items.length > 0 ? (
+                items.map((item) => <ItemCard key={item.id} item={item as Item} />)
+              ) : (
+                <div className="col-span-full flex flex-col items-center justify-center rounded-xl border border-dashed border-border-main py-20 text-center">
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface-hover">
+                    <Search className="h-6 w-6 text-text-dim" />
+                  </div>
+                  <h3 className="text-sm font-medium text-text-muted">No items found</h3>
+                  <p className="mt-1 text-xs text-text-dim">Try adjusting your search or filters.</p>
                 </div>
-                <h3 className="text-sm font-medium text-text-muted">No items found</h3>
-                <p className="mt-1 text-xs text-text-dim">Try adjusting your search or filters.</p>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          </ErrorBoundary>
+
+          <Pagination total={total} />
         </div>
       </main>
 

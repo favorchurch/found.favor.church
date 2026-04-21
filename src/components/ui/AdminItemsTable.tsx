@@ -6,10 +6,11 @@ import { Calendar, MapPin, CameraOff, ChevronRight, Eye, EyeOff } from "lucide-r
 import Link from "next/link";
 import { type Item } from "./ItemCard";
 import { StatusBadge } from "./StatusBadge";
-import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/utils/cn";
+import { getPhotoUrl } from "@/utils/photo";
+import { upsertItem } from "@/app/admin/actions/items";
 
 interface AdminItemsTableProps {
   items: Item[];
@@ -17,13 +18,7 @@ interface AdminItemsTableProps {
 
 export function AdminItemsTable({ items }: AdminItemsTableProps) {
   const router = useRouter();
-  const supabase = createClient();
   const [privacyCache, setPrivacyCache] = useState<Record<string, boolean>>({});
-
-  const getPhotoUrl = (path: string | null) => {
-    if (!path) return null;
-    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/item-images/${path}`;
-  };
 
   const isPublic = (item: Item) =>
     privacyCache[item.id] ?? item.is_public;
@@ -32,11 +27,10 @@ export function AdminItemsTable({ items }: AdminItemsTableProps) {
     const next = !isPublic(item);
     setPrivacyCache((prev) => ({ ...prev, [item.id]: next }));
     try {
-      const { error } = await supabase
-        .from("found_items")
-        .update({ is_public: next })
-        .eq("id", item.id);
-      if (error) throw error;
+      await upsertItem({
+        ...item,
+        is_public: next,
+      });
       toast.success(next ? "Item is now public" : "Item is now private");
       router.refresh();
     } catch {

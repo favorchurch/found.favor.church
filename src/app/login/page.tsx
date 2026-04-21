@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/client";
 import { LogIn } from "lucide-react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export default function LoginPage() {
   const supabase = createClient();
@@ -20,6 +21,7 @@ export default function LoginPage() {
   };
 
   return (
+    <ErrorBoundary>
     <div className="flex min-h-screen items-center justify-center bg-bg px-6">
       <div className="w-full max-w-md space-y-8 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-brand">
@@ -49,5 +51,6 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+    </ErrorBoundary>
   );
 }
