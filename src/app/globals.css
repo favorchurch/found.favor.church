@@ -1,26 +1,58 @@
 @import "tailwindcss";
 
+@theme {
+  --font-mono: "IBM Plex Mono", monospace;
+  --font-sans: "IBM Plex Sans", sans-serif;
+
+  --color-bg: #0a0a0a;
+  --color-surface: #131313;
+  --color-surface-hover: #1a1a1a;
+  --color-surface-active: #222222;
+  --color-brand: #ff6a00;
+  --color-brand-dim: #cc5500;
+  --color-brand-bg: rgba(255, 106, 0, 0.08);
+  --color-brand-border: rgba(255, 106, 0, 0.25);
+  --color-text-main: #f0f0f0;
+  --color-text-muted: #888;
+  --color-text-dim: #555;
+  --color-border-main: #2a2a2a;
+  --color-border-hover: #333;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --bg: #0a0a0a;
+  --surface: #131313;
+  --surface2: #1a1a1a;
+  --surface3: #222222;
+  --orange: #ff6a00;
+  --orange-dim: #cc5500;
+  --orange-bg: rgba(255,106,0,0.08);
+  --orange-border: rgba(255,106,0,0.25);
+  --text: #f0f0f0;
+  --text-muted: #888;
+  --text-dim: #555;
+  --border: #2a2a2a;
+  --border2: #333;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border2);
 }
