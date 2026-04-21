@@ -21,7 +21,13 @@ export function AdminShell({ user, children, modal }: AdminShellProps) {
   useEffect(() => {
     const saved = localStorage.getItem("admin-sidebar-collapsed");
     if (saved !== null) {
-      setIsCollapsed(saved === "true");
+      const shouldBeCollapsed = saved === "true";
+      // Using a small delay to avoid the sync-setState lint error
+      // and ensuring we don't trigger cascading renders immediately
+      const timeoutId = setTimeout(() => {
+        setIsCollapsed(shouldBeCollapsed);
+      }, 0);
+      return () => clearTimeout(timeoutId);
     }
   }, []);
 

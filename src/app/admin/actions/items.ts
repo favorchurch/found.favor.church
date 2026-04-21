@@ -20,6 +20,23 @@ const itemSchema = z.object({
   disposed_by: z.string().nullable().optional(),
 });
 
+interface FoundItemUpdate {
+  name: string;
+  description?: string | null;
+  date_found: string;
+  location?: string | null;
+  status: "unclaimed" | "claimed" | "disposed";
+  is_public: boolean;
+  photo_path?: string | null;
+  updated_at: string;
+  updated_by: string;
+  created_by?: string;
+  claimed_date?: string | null;
+  claimed_by?: string | null;
+  disposed_date?: string | null;
+  disposed_by?: string | null;
+}
+
 export async function upsertItem(data: z.infer<typeof itemSchema>) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -31,7 +48,7 @@ export async function upsertItem(data: z.infer<typeof itemSchema>) {
   const validatedData = itemSchema.parse(data);
   const { id, ...itemFields } = validatedData;
 
-  const itemData: any = {
+  const itemData: FoundItemUpdate = {
     ...itemFields,
     updated_at: new Date().toISOString(),
     updated_by: user.id,

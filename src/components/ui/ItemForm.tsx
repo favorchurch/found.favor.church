@@ -22,6 +22,21 @@ interface ItemFormProps {
   };
 }
 
+interface ItemUpsertData {
+  id?: string;
+  name: string;
+  description: string | null;
+  date_found: string;
+  location: string | null;
+  status: ItemStatus;
+  is_public: boolean;
+  photo_path: string | null;
+  claimed_date: string | null;
+  claimed_by: string | null;
+  disposed_date: string | null;
+  disposed_by: string | null;
+}
+
 export function ItemForm({ initialData }: ItemFormProps) {
   const router = useRouter();
   const supabase = createClient();
@@ -82,12 +97,12 @@ export function ItemForm({ initialData }: ItemFormProps) {
         photo_path = null;
       }
 
-      const itemData: any = {
+      const itemData: ItemUpsertData = {
         id: initialData?.id,
         name,
-        description,
+        description: description || null,
         date_found,
-        location,
+        location: location || null,
         status: currentStatus,
         is_public,
         photo_path,
@@ -105,7 +120,7 @@ export function ItemForm({ initialData }: ItemFormProps) {
     toast.promise(promise(), {
       loading: "Saving item...",
       success: "Item saved successfully",
-      error: (err) => `Error saving item: ${err.message}`,
+      error: (err) => `Error saving item: ${err instanceof Error ? err.message : 'Unknown error'}`,
     });
     
     setLoading(false);
@@ -124,7 +139,7 @@ export function ItemForm({ initialData }: ItemFormProps) {
     toast.promise(promise(), {
       loading: "Deleting item...",
       success: "Item deleted successfully",
-      error: (err) => `Error deleting item: ${err.message}`,
+      error: (err) => `Error deleting item: ${err instanceof Error ? err.message : 'Unknown error'}`,
     });
 
     setLoading(false);

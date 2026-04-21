@@ -61,7 +61,7 @@ export function ItemCard({
 
   const photoUrl = getPhotoUrl(currentItem.photo_path);
 
-  const updateField = (field: keyof Item, value: any) => {
+  const updateField = (field: keyof Item, value: string | boolean | null) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 

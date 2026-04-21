@@ -82,8 +82,9 @@ export default function CleanupPage() {
     try {
       await archiveOldItems()
       toast.success("Archival sequence complete")
-    } catch (error: any) {
-      toast.error(`Archival failed: ${error.message}`)
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error(`Archival failed: ${message}`)
     } finally {
       setArchiving(false)
     }
