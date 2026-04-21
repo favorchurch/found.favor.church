@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { AdminSidebar } from "./AdminSidebar";
 import { Menu } from "lucide-react";
 import { cn } from "@/utils/cn";
@@ -14,22 +14,17 @@ interface AdminShellProps {
 }
 
 export function AdminShell({ user, children, modal }: AdminShellProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("admin-sidebar-collapsed");
+      return saved === "true";
+    }
+    return false;
+  });
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   // Persistence for desktop collapse state
-  useEffect(() => {
-    const saved = localStorage.getItem("admin-sidebar-collapsed");
-    if (saved !== null) {
-      const shouldBeCollapsed = saved === "true";
-      // Using a small delay to avoid the sync-setState lint error
-      // and ensuring we don't trigger cascading renders immediately
-      const timeoutId = setTimeout(() => {
-        setIsCollapsed(shouldBeCollapsed);
-      }, 0);
-      return () => clearTimeout(timeoutId);
-    }
-  }, []);
+  // Initial state is handled by useState lazy initializer
 
   const handleSetCollapsed = (collapsed: boolean) => {
     setIsCollapsed(collapsed);

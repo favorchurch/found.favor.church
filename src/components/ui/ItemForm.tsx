@@ -73,8 +73,13 @@ export function ItemForm({ initialData }: ItemFormProps) {
     const promise = async () => {
       let photo_path = initialData?.photo_path || null;
 
-      // Handle Image Upload
-      if (imageFile) {
+      // Handle Image Upload / Removal
+      if (removedPhoto && initialData?.photo_path) {
+        await supabase.storage
+          .from("item-images")
+          .remove([initialData.photo_path]);
+        photo_path = null;
+      } else if (imageFile) {
         const fileExt = imageFile.name.split(".").pop();
         const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
@@ -90,11 +95,6 @@ export function ItemForm({ initialData }: ItemFormProps) {
             .from("item-images")
             .remove([initialData.photo_path]);
         }
-      } else if (removedPhoto && initialData?.photo_path) {
-         await supabase.storage
-          .from("item-images")
-          .remove([initialData.photo_path]);
-        photo_path = null;
       }
 
       const itemData: ItemUpsertData = {
