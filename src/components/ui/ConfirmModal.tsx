@@ -1,14 +1,7 @@
 "use client";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "./ModalOverlay";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, X } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -33,11 +26,35 @@ export function ConfirmModal({
   variant = "danger",
   loading = false,
 }: ConfirmModalProps) {
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    if (isOpen) {
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[400px] bg-surface border-border-main p-0 overflow-hidden rounded-2xl">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+      <div 
+        ref={overlayRef}
+        className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-300"
+        onClick={onClose}
+      />
+      
+      <div className="relative w-full max-w-md bg-surface border border-border-main rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="p-6">
-          <div className="flex items-start gap-4">
+          <div className="flex items-center justify-between mb-6">
             <div className={`p-3 rounded-xl shrink-0 ${
               variant === "danger" ? "bg-red-500/10 text-red-500" : 
               variant === "warning" ? "bg-yellow-500/10 text-yellow-500" : 
@@ -45,18 +62,25 @@ export function ConfirmModal({
             }`}>
               <AlertTriangle className="h-6 w-6" />
             </div>
-            <div className="space-y-1">
-              <DialogTitle className="text-lg font-bold text-text-main font-mono uppercase tracking-widest">
-                {title}
-              </DialogTitle>
-              <DialogDescription className="text-xs text-text-dim font-mono uppercase leading-relaxed tracking-tighter">
-                {description}
-              </DialogDescription>
-            </div>
+            <button 
+              onClick={onClose}
+              className="p-1 rounded-lg text-text-dim hover:text-text-main transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="space-y-1">
+            <h3 className="text-lg font-bold text-text-main font-mono uppercase tracking-widest">
+              {title}
+            </h3>
+            <p className="text-xs text-text-dim font-mono uppercase leading-relaxed tracking-tighter">
+              {description}
+            </p>
           </div>
         </div>
 
-        <DialogFooter className="bg-surface-active/30 p-4 flex sm:justify-end gap-2 border-t border-border-main/50">
+        <div className="bg-surface-active/30 p-4 flex sm:justify-end gap-2 border-t border-border-main/50">
           <button
             type="button"
             onClick={onClose}
@@ -72,16 +96,13 @@ export function ConfirmModal({
               variant === "danger" ? "bg-red-500 text-white hover:bg-red-600 shadow-red-500/20" : 
               variant === "warning" ? "bg-yellow-500 text-black hover:bg-yellow-600 shadow-yellow-500/20" : 
               "bg-brand text-black hover:bg-brand-dim shadow-brand/20"
-            } disabled:opacity-50`}
+            } disabled:opacity-50 flex items-center justify-center gap-2`}
           >
-            {loading ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            ) : (
-              confirmText
-            )}
+            {loading && <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />}
+            {confirmText}
           </button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </div>
   );
 }
