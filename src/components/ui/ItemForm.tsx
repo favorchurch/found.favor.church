@@ -76,7 +76,22 @@ export function ItemForm({ initialData }: ItemFormProps) {
         }
       }
 
-      const itemData: any = {
+      interface ItemData {
+        name: string;
+        description: string;
+        date_found: string;
+        location: string;
+        status: ItemStatus;
+        is_public: boolean;
+        photo_path: string | null;
+        updated_at: string;
+        claimed_date?: string | null;
+        claimed_by?: string | null;
+        disposed_date?: string | null;
+        disposed_by?: string | null;
+      }
+
+      const itemData: ItemData = {
         name,
         description,
         date_found,
