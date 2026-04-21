@@ -190,12 +190,21 @@ function FilterButton({ active, label, status, currentParams }: { active: boolea
   params.set("status", status);
   params.delete("page");
 
+  const getActiveStyles = (status: string) => {
+    switch (status) {
+      case "unclaimed": return "bg-yellow-500/10 border-yellow-500/40 text-yellow-500";
+      case "claimed": return "bg-emerald-500/10 border-emerald-500/40 text-emerald-500";
+      case "disposed": return "bg-red-500/10 border-red-500/40 text-red-500";
+      default: return "bg-brand/10 border-brand/40 text-brand";
+    }
+  };
+
   return (
     <Link
       href={`?${params.toString()}`}
       className={`px-4 py-2 rounded-lg text-[10px] font-mono font-bold uppercase tracking-widest transition-all border ${
         active
-          ? "bg-brand/10 border-brand/40 text-brand shadow-lg shadow-brand/5"
+          ? `${getActiveStyles(status)} shadow-lg shadow-black/5`
           : "text-text-dim border-border-hover/50 hover:bg-surface-hover hover:text-text-muted hover:border-border-hover"
       }`}
     >
