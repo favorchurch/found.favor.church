@@ -56,15 +56,23 @@ export default async function CatalogPage({
         </div>
         <div className="flex items-center gap-4">
           {user ? (
-            <form action="/auth/signout" method="POST">
-              <button 
-                type="submit"
-                className="flex items-center gap-2 text-[10px] font-mono text-red-500/70 hover:text-red-500 uppercase transition-colors"
+            <>
+              <a
+                href="/admin/dashboard"
+                className="text-[10px] font-mono text-brand hover:text-brand-bright uppercase transition-colors"
               >
-                <LogOut className="h-3 w-3" />
-                Logout
-              </button>
-            </form>
+                Admin Dashboard
+              </a>
+              <form action="/auth/signout" method="POST">
+                <button 
+                  type="submit"
+                  className="flex items-center gap-2 text-[10px] font-mono text-red-500/70 hover:text-red-500 uppercase transition-colors"
+                >
+                  <LogOut className="h-3 w-3" />
+                  Logout
+                </button>
+              </form>
+            </>
           ) : (
             <a
               href="/login"

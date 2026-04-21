@@ -81,8 +81,8 @@ export default async function DashboardPage({
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-brand uppercase font-mono">Management Console</h1>
-          <p className="text-[10px] text-text-dim uppercase tracking-widest mt-1">Admin Dashboard for Lost & Found items</p>
+          <h1 className="text-2xl font-bold tracking-tight text-brand uppercase font-mono">Items Management</h1>
+          <p className="text-[10px] text-text-dim uppercase tracking-widest mt-1">Manage and track lost and found items</p>
         </div>
         <div className="flex items-center gap-3">
           <Link 
@@ -141,22 +141,6 @@ export default async function DashboardPage({
 
       {/* Items Section */}
       <AdminItemsView items={(items || []) as Item[]} />
-
-      {/* Archive Section */}
-      <div className="p-8 rounded-xl border border-red-500/10 bg-red-500/5 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h3 className="text-sm font-bold text-text-main uppercase font-mono tracking-widest">Data Maintenance</h3>
-          <p className="text-[10px] text-text-muted mt-1 uppercase tracking-tighter font-mono flex items-center gap-2">
-            <span className="h-1 w-1 rounded-full bg-red-500 animate-pulse" />
-            Auto-Archive records older than 30 days (Claimed items only)
-          </p>
-        </div>
-        <form action="/admin/actions/archive" method="POST">
-          <button className="px-6 py-2.5 rounded-lg border border-red-500/20 bg-red-500/10 text-red-500 text-[11px] font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/10">
-            Run Archival Sequence
-          </button>
-        </form>
-      </div>
     </div>
   );
 }

@@ -25,15 +25,19 @@ export default async function EditItemPage({
   return (
     <div className="p-8 space-y-8">
       <div className="flex items-center gap-4">
-        <Link 
-          href="/admin/dashboard" 
+        <Link
+          href="/admin/dashboard"
           className="p-2 rounded-lg border border-border-main bg-surface text-text-dim hover:text-brand transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-main">Edit Item</h1>
-          <p className="text-sm text-text-muted mt-1 uppercase tracking-tighter font-mono">ID: {id}</p>
+          <h1 className="text-2xl font-bold tracking-tight text-text-main uppercase">
+            UPDATE: {item.name}
+          </h1>
+          <p className="text-sm text-text-muted mt-1 uppercase tracking-tighter font-mono">
+            ID: {id}
+          </p>
         </div>
       </div>
 

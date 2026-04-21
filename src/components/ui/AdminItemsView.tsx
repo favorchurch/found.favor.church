@@ -45,21 +45,23 @@ export function AdminItemsView({ items }: AdminItemsViewProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
-        <LayoutToggle view={state.view} onChange={handleViewChange} />
-      </div>
-
       {items && items.length > 0 ? (
         state.view === "grid" ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {items.map((item) => (
-              <Link key={item.id} href={`/admin/items/${item.id}`}>
-                <ItemCard item={item} admin />
-              </Link>
-            ))}
+          <div className="flex items-start gap-4">
+            <div className="flex-1 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {items.map((item) => (
+                <ItemCard key={item.id} item={item} admin />
+              ))}
+            </div>
+            <LayoutToggle view={state.view} onChange={handleViewChange} />
           </div>
         ) : (
-          <AdminItemsTable items={items} />
+          <>
+            <div className="flex justify-end">
+              <LayoutToggle view={state.view} onChange={handleViewChange} />
+            </div>
+            <AdminItemsTable items={items} />
+          </>
         )
       ) : (
         <div className="col-span-full h-80 flex flex-col items-center justify-center rounded-xl border border-dashed border-border-main text-center bg-surface/30">

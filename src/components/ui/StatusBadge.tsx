@@ -14,13 +14,19 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     disposed: 'bg-red-500/10 text-red-500 border-red-500/20',
   };
 
+  const icons = {
+    unclaimed: '🟡',
+    claimed: '✅',
+    disposed: '❌',
+  };
+
   return (
     <span className={cn(
-      "inline-flex items-center rounded px-2 py-0.5 font-mono text-[10px] font-bold tracking-wider uppercase border",
+      "inline-flex items-center gap-1.5 rounded px-2 py-0.5 font-mono text-[10px] font-bold tracking-wider uppercase border",
       styles[status],
       className
     )}>
-      {status}
+      {icons[status]} {status}
     </span>
   );
 }

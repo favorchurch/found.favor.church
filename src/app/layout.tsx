@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: "Official lost and found tracker for Favor Church.",
 };
 
+import { Toaster } from "sonner";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${plexSans.variable} ${plexMono.variable} antialiased`}>
       <body className="min-h-screen bg-bg text-text-main selection:bg-brand/30">
+        <Toaster position="bottom-right" theme="dark" toastOptions={{ style: { background: '#1c1c1c', border: '1px solid #333' } }} />
         {children}
       </body>
     </html>
