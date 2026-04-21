@@ -30,6 +30,7 @@ export function ItemForm({ initialData }: ItemFormProps) {
     initialData?.status || "unclaimed",
   );
 
+  const [removedPhoto, setRemovedPhoto] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(
     initialData?.photo_path
@@ -57,8 +58,13 @@ export function ItemForm({ initialData }: ItemFormProps) {
     try {
       let photo_path = initialData?.photo_path || null;
 
-      // Handle Image Upload
-      if (imageFile) {
+      // Handle Image Upload / Removal
+      if (removedPhoto && initialData?.photo_path) {
+        await supabase.storage
+          .from("item-images")
+          .remove([initialData.photo_path]);
+        photo_path = null;
+      } else if (imageFile) {
         const fileExt = imageFile.name.split(".").pop();
         const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
@@ -163,6 +169,7 @@ export function ItemForm({ initialData }: ItemFormProps) {
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setRemovedPhoto(false);
       setCompressing(true);
       try {
         const options = {
@@ -391,11 +398,25 @@ export function ItemForm({ initialData }: ItemFormProps) {
                   alt="Preview"
                   className="h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Camera className="h-8 w-8 text-white" />
-                  <span className="ml-2 text-white font-mono text-xs font-bold uppercase tracking-widest">
-                    Change Photo
-                  </span>
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                  <button
+                    type="button"
+                    className="p-2 bg-white/20 hover:bg-red-500 rounded-full transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setRemovedPhoto(true);
+                      setImagePreview(null);
+                      setImageFile(null);
+                    }}
+                  >
+                    <Trash2 className="h-6 w-6 text-white" />
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <Camera className="h-6 w-6 text-white" />
+                    <span className="text-white font-mono text-xs font-bold uppercase tracking-widest">
+                      Change
+                    </span>
+                  </div>
                 </div>
               </>
             ) : (
