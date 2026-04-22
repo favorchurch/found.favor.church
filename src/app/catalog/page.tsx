@@ -18,7 +18,7 @@ export default async function CatalogPage({
 }) {
   const params = await searchParams;
   const query = params.q || "";
-  const statusFilter = params.status || "all";
+  const statusFilter = params.status || "unclaimed";
   const page = Math.max(1, Number(params.page) || 1);
 
   const supabase = await createClient();
@@ -131,7 +131,7 @@ export default async function CatalogPage({
           <ErrorBoundary>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {items && items.length > 0 ? (
-                items.map((item) => <ItemCard key={item.id} item={item as Item} />)
+                items.map((item) => <ItemCard key={item.id} item={item as Item} hideImage={true} hideStatus={true} />)
               ) : (
                 <div className="col-span-full flex flex-col items-center justify-center rounded-xl border border-dashed border-border-main py-20 text-center">
                   <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface-hover">

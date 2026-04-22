@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "favor-events-calendar": {
+      "url": "https://events.favor.church/wp-json/mcp-server/v1/mcp/readwrite",
+      "type": "sse",
+      "trust": true
+    }
+  }
+}

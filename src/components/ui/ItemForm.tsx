@@ -71,50 +71,54 @@ export function ItemForm({ initialData }: ItemFormProps) {
     const disposed_by = formData.get("disposed_by") as string | null;
 
     const promise = async () => {
-      let photo_path = initialData?.photo_path || null;
+      try {
+        let photo_path = initialData?.photo_path || null;
 
-      // Handle Image Upload / Removal
-      if (removedPhoto && initialData?.photo_path) {
-        await supabase.storage
-          .from("item-images")
-          .remove([initialData.photo_path]);
-        photo_path = null;
-      } else if (imageFile) {
-        const fileExt = imageFile.name.split(".").pop();
-        const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("item-images")
-          .upload(fileName, imageFile);
-
-        if (uploadError) throw uploadError;
-        photo_path = uploadData.path;
-
-        // Cleanup old image if we're replacing it
-        if (initialData?.photo_path) {
+        // Handle Image Upload / Removal
+        if (removedPhoto && initialData?.photo_path) {
           await supabase.storage
             .from("item-images")
             .remove([initialData.photo_path]);
+          photo_path = null;
+        } else if (imageFile) {
+          const fileExt = imageFile.name.split(".").pop();
+          const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from("item-images")
+            .upload(fileName, imageFile);
+
+          if (uploadError) throw uploadError;
+          photo_path = uploadData.path;
+
+          // Cleanup old image if we're replacing it
+          if (initialData?.photo_path) {
+            await supabase.storage
+              .from("item-images")
+              .remove([initialData.photo_path]);
+          }
         }
+
+        const itemData: ItemUpsertData = {
+          id: initialData?.id,
+          name,
+          description: description || null,
+          date_found,
+          location: location || null,
+          status: currentStatus,
+          is_public,
+          photo_path,
+          claimed_date: currentStatus === "claimed" ? (claimed_date || new Date().toISOString()) : null,
+          claimed_by: currentStatus === "claimed" ? (claimed_by || "Unknown") : null,
+          disposed_date: currentStatus === "disposed" ? (disposed_date || new Date().toISOString()) : null,
+          disposed_by: currentStatus === "disposed" ? (disposed_by || "Unknown") : null,
+        };
+
+        await upsertItem(itemData);
+        router.push("/admin/dashboard");
+        router.refresh();
+      } finally {
+        setLoading(false);
       }
-
-      const itemData: ItemUpsertData = {
-        id: initialData?.id,
-        name,
-        description: description || null,
-        date_found,
-        location: location || null,
-        status: currentStatus,
-        is_public,
-        photo_path,
-        claimed_date: currentStatus === "claimed" ? (claimed_date || new Date().toISOString()) : null,
-        claimed_by: currentStatus === "claimed" ? (claimed_by || "Unknown") : null,
-        disposed_date: currentStatus === "disposed" ? (disposed_date || new Date().toISOString()) : null,
-        disposed_by: currentStatus === "disposed" ? (disposed_by || "Unknown") : null,
-      };
-
-      await upsertItem(itemData);
-      router.push("/admin/dashboard");
-      router.refresh();
     };
 
     toast.promise(promise(), {
@@ -122,8 +126,6 @@ export function ItemForm({ initialData }: ItemFormProps) {
       success: "Item saved successfully",
       error: (err) => `Error saving item: ${err instanceof Error ? err.message : 'Unknown error'}`,
     });
-    
-    setLoading(false);
   };
 
   const handleDelete = async () => {
@@ -131,9 +133,14 @@ export function ItemForm({ initialData }: ItemFormProps) {
     setLoading(true);
     
     const promise = async () => {
-      await deleteItem(initialData.id, initialData.photo_path);
-      router.push("/admin/dashboard");
-      router.refresh();
+      try {
+        await deleteItem(initialData.id, initialData.photo_path);
+        router.push("/admin/dashboard");
+        router.refresh();
+      } finally {
+        setLoading(false);
+        setShowDeleteModal(false);
+      }
     };
 
     toast.promise(promise(), {
@@ -141,9 +148,6 @@ export function ItemForm({ initialData }: ItemFormProps) {
       success: "Item deleted successfully",
       error: (err) => `Error deleting item: ${err instanceof Error ? err.message : 'Unknown error'}`,
     });
-
-    setLoading(false);
-    setShowDeleteModal(false);
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

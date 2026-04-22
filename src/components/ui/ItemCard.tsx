@@ -42,6 +42,8 @@ interface ItemCardProps {
   onClick?: (item: Item) => void;
   className?: string;
   admin?: boolean;
+  hideImage?: boolean;
+  hideStatus?: boolean;
 }
 
 export function ItemCard({
@@ -49,6 +51,8 @@ export function ItemCard({
   onClick,
   className,
   admin = false,
+  hideImage = false,
+  hideStatus = false,
 }: ItemCardProps) {
   const router = useRouter();
   const [formData, setFormData] = useState<Partial<Item>>({});
@@ -204,90 +208,105 @@ export function ItemCard({
         )}
 
         {/* Image Section */}
-        <div
-          onClick={() => {
-            if (!isEditing && onClick) {
-              onClick(currentItem);
-            } else if (admin && !isEditing) {
-              router.push(`/admin/items/${item.id}`);
-            }
-          }}
-          className={cn(
-            "aspect-[16/10] w-full overflow-hidden flex items-center justify-center relative bg-surface-hover/50",
-            ((admin && !isEditing) || !admin) &&
-              "cursor-pointer group-hover:opacity-90 transition-opacity",
-          )}
-        >
-          {photoUrl ? (
-            <>
-              <img
-                src={photoUrl}
-                alt={currentItem.name}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              {!currentItem.is_public && (
-                <div className="absolute inset-0 bg-black/50 shadow-[inset_0_0_60px_rgba(0,0,0,0.6)] pointer-events-none" />
-              )}
-            </>
-          ) : (
-            <div className="flex flex-col items-center gap-2 text-text-dim opacity-40">
-              <CameraOff className="h-8 w-8" />
-              <span className="font-mono text-[10px] uppercase">
-                No photo attached
-              </span>
-            </div>
-          )}
-
-          {/* Status Badge — lower right inside image, links to edit modal */}
+        {!hideImage && (
           <div
-            className="absolute bottom-2 right-2 z-10"
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
+            onClick={() => {
+              if (!isEditing && onClick) {
+                onClick(currentItem);
+              } else if (admin && !isEditing) {
+                router.push(`/admin/items/${item.id}`);
+              }
             }}
+            className={cn(
+              "aspect-[16/10] w-full overflow-hidden flex items-center justify-center relative bg-surface-hover/50",
+              ((admin && !isEditing) || !admin) &&
+                "cursor-pointer group-hover:opacity-90 transition-opacity",
+            )}
           >
-            {admin && isEditing ? (
-              <div className="relative">
-                <select
-                  value={currentItem.status}
-                  onChange={(e) =>
-                    updateField("status", e.target.value as ItemStatus)
-                  }
-                  className={cn(
-                    "text-[10px] font-mono font-bold tracking-wider uppercase border border-white/20 rounded-lg cursor-pointer appearance-none pl-2 pr-7 py-1 outline-none bg-black/80 backdrop-blur-md text-white transition-colors focus:ring-1 focus:ring-brand/50 w-[125px]",
-                    statusStyles[currentItem.status],
-                  )}
-                >
-                  <option value="unclaimed">
-                    {"🟡"} Unclaimed
-                  </option>
-                  <option value="claimed">
-                    {"✅"} Claimed
-                  </option>
-                  <option value="disposed">
-                    {"❌"} Disposed
-                  </option>
-                </select>
-                <ChevronDown className="h-3 w-3 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 text-white" />
+            {photoUrl ? (
+              <>
+                <img
+                  src={photoUrl}
+                  alt={currentItem.name}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                {!currentItem.is_public && (
+                  <div className="absolute inset-0 bg-black/50 shadow-[inset_0_0_60px_rgba(0,0,0,0.6)] pointer-events-none" />
+                )}
+              </>
+            ) : (
+              <div className="flex flex-col items-center gap-2 text-text-dim opacity-40">
+                <CameraOff className="h-8 w-8" />
+                <span className="font-mono text-[10px] uppercase">
+                  No photo attached
+                </span>
               </div>
-            ) : admin ? (
-              <Link
-                href={`/admin/items/${item.id}`}
+            )}
+
+            {/* Status Badge — lower right inside image */}
+            {!hideStatus && (
+              <div
+                className="absolute bottom-2 right-2 z-10"
                 onClick={(e) => {
                   e.stopPropagation();
+                  e.preventDefault();
                 }}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase border shadow-sm backdrop-blur-md bg-black/80 hover:bg-black/90 transition-colors",
-                  statusStyles[currentItem.status],
-                )}
               >
-                {statusIcons[currentItem.status]}
-                {currentItem.status}
-              </Link>
-            ) : (
+                {admin && isEditing ? (
+                  <div className="relative">
+                    <select
+                      value={currentItem.status}
+                      onChange={(e) =>
+                        updateField("status", e.target.value as ItemStatus)
+                      }
+                      className={cn(
+                        "text-[10px] font-mono font-bold tracking-wider uppercase border border-white/20 rounded-lg cursor-pointer appearance-none pl-2 pr-7 py-1 outline-none bg-black/80 backdrop-blur-md text-white transition-colors focus:ring-1 focus:ring-brand/50 w-[125px]",
+                        statusStyles[currentItem.status],
+                      )}
+                    >
+                      <option value="unclaimed">{"🟡"} Unclaimed</option>
+                      <option value="claimed">{"✅"} Claimed</option>
+                      <option value="disposed">{"❌"} Disposed</option>
+                    </select>
+                    <ChevronDown className="h-3 w-3 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 text-white" />
+                  </div>
+                ) : admin ? (
+                  <Link
+                    href={`/admin/items/${item.id}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase border shadow-sm backdrop-blur-md bg-black/80 hover:bg-black/90 transition-colors",
+                      statusStyles[currentItem.status],
+                    )}
+                  >
+                    {statusIcons[currentItem.status]}
+                    {currentItem.status}
+                  </Link>
+                ) : (
+                  <div
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase border shadow-sm backdrop-blur-md bg-black/80",
+                      statusStyles[currentItem.status],
+                    )}
+                  >
+                    {statusIcons[currentItem.status]}
+                    {currentItem.status}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Content Section */}
+        <div className="flex flex-col p-4 flex-1 backdrop-blur-sm z-10 bg-surface/50">
+          <div className="flex items-start justify-between gap-2">
+            {!isEditing && hideImage && !hideStatus && (
               <div
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase border shadow-sm backdrop-blur-md bg-black/80",
+                  "inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 font-mono text-[9px] font-bold tracking-wider uppercase border bg-surface-active/50",
                   statusStyles[currentItem.status],
                 )}
               >
@@ -295,12 +314,6 @@ export function ItemCard({
                 {currentItem.status}
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Content Section */}
-        <div className="flex flex-col p-4 flex-1 backdrop-blur-sm z-10 bg-surface/50">
-          <div className="flex items-start justify-between gap-2">
             {isEditing ? (
               <input
                 autoFocus
