@@ -31,6 +31,7 @@ interface FoundItemUpdate {
   updated_at: string;
   updated_by: string;
   created_by?: string;
+  created_by_email?: string;
   claimed_date?: string | null;
   claimed_by?: string | null;
   disposed_date?: string | null;
@@ -52,6 +53,7 @@ export async function upsertItem(data: z.infer<typeof itemSchema>) {
     ...itemFields,
     updated_at: new Date().toISOString(),
     updated_by: user.id,
+    updated_by_email: user.email || "Unknown",
   };
 
   if (id) {
@@ -62,6 +64,7 @@ export async function upsertItem(data: z.infer<typeof itemSchema>) {
     if (error) throw error;
   } else {
     itemData.created_by = user.id;
+    itemData.created_by_email = user.email || "Unknown";
     const { error } = await supabase
       .from("found_items")
       .insert([itemData]);

@@ -49,6 +49,7 @@ export function AdminItemsTable({ items }: AdminItemsTableProps) {
               <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Item</th>
               <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Location</th>
               <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Date Found</th>
+              <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Added By</th>
               <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Status</th>
               <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim text-right">Actions</th>
             </tr>
@@ -114,6 +115,11 @@ export function AdminItemsTable({ items }: AdminItemsTableProps) {
                     <div className="flex items-center gap-2 text-xs text-text-muted">
                       <Calendar className="h-3.5 w-3.5 text-text-dim" />
                       {format(new Date(item.date_found), 'MMM dd, yyyy')}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-[10px] font-mono text-text-muted truncate max-w-[150px]" title={item.created_by_email || "Unknown"}>
+                      {item.created_by_email?.split('@')[0] || "Unknown"}
                     </div>
                   </td>
                   <td className="px-6 py-4">

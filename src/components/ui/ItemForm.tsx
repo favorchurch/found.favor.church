@@ -439,14 +439,21 @@ export function ItemForm({ initialData }: ItemFormProps) {
 
       <div className="flex items-center justify-between gap-4 pt-6 border-t border-border-main">
         {initialData?.id ? (
-          <button
-            type="button"
-            onClick={() => setShowDeleteModal(true)}
-            className="inline-flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-mono font-bold uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-colors"
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete Entry
-          </button>
+          <div className="flex flex-col gap-1">
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(true)}
+              className="inline-flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-mono font-bold uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-colors"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete Entry
+            </button>
+            {initialData.created_by_email && (
+              <p className="px-6 text-[9px] font-mono text-text-dim uppercase tracking-tighter">
+                Originally added by: {initialData.created_by_email}
+              </p>
+            )}
+          </div>
         ) : (
           <div />
         )}

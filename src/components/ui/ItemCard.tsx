@@ -31,6 +31,7 @@ export interface Item {
   photo_path: string | null;
   is_public: boolean;
   created_at: string;
+  created_by_email?: string | null;
   claimed_date?: string | null;
   claimed_by?: string | null;
   disposed_date?: string | null;
@@ -383,6 +384,12 @@ export function ItemCard({
               </div>
             )}
           </div>
+
+          {admin && currentItem.created_by_email && (
+            <div className="mt-2 text-[9px] font-mono text-text-dim/60 uppercase tracking-tighter">
+              Added by: {currentItem.created_by_email}
+            </div>
+          )}
 
           {/* Conditional Claim / Dispose Input sliding down */}
           {isEditing &&
