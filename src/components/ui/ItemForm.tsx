@@ -216,6 +216,17 @@ export function ItemForm({ initialData }: ItemFormProps) {
             </p>
           </div>
 
+          {initialData?.created_by_email && (
+            <div className="p-3 bg-surface-active/50 rounded-lg border border-border-main flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-text-dim">
+                Source
+              </span>
+              <span className="font-mono text-[10px] uppercase tracking-widest text-brand font-bold">
+                {initialData.created_by_email}
+              </span>
+            </div>
+          )}
+
           <div className="space-y-2">
             <label className="font-mono text-[10px] uppercase tracking-widest text-text-dim">
               Item Name *
@@ -448,11 +459,6 @@ export function ItemForm({ initialData }: ItemFormProps) {
               <Trash2 className="h-4 w-4" />
               Delete Entry
             </button>
-            {initialData.created_by_email && (
-              <p className="px-6 text-[9px] font-mono text-text-dim uppercase tracking-tighter">
-                Originally added by: {initialData.created_by_email}
-              </p>
-            )}
           </div>
         ) : (
           <div />

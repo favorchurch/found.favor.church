@@ -24,9 +24,16 @@ export default async function EditItemModalPage({
   return (
     <ModalOverlay>
       <div className="p-6 border-b border-border-main bg-surface-active/50 rounded-t-2xl">
-        <h2 className="text-xl font-bold tracking-tight text-text-main uppercase">
-          UPDATE: {item.name}
-        </h2>
+        <div className="flex flex-col gap-0.5">
+          <h2 className="text-xl font-bold tracking-tight text-text-main uppercase">
+            UPDATE: {item.name}
+          </h2>
+          {item.created_by_email && (
+            <p className="text-[10px] font-mono text-text-dim uppercase tracking-widest">
+              Entry by: {item.created_by_email}
+            </p>
+          )}
+        </div>
       </div>
       <div className="p-2 sm:p-6 pb-8">
         <ItemForm initialData={item} />
