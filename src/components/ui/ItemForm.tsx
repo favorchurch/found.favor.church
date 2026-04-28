@@ -428,7 +428,7 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
                   alt="Preview"
                   className="h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                <div className="absolute inset-0 bg-white/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                   <button
                     type="button"
                     className="p-2 bg-white/20 hover:bg-red-500 rounded-full transition-colors"
@@ -439,11 +439,11 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
                       setImageFile(null);
                     }}
                   >
-                    <Trash2 className="h-6 w-6 text-white" />
+                    <Trash2 className="h-6 w-6 text-text-main" />
                   </button>
                   <div className="flex items-center gap-2">
-                    <Camera className="h-6 w-6 text-white" />
-                    <span className="text-white font-mono text-xs font-bold uppercase tracking-widest">
+                    <Camera className="h-6 w-6 text-text-main" />
+                    <span className="text-text-main font-mono text-xs font-bold uppercase tracking-widest">
                       Change
                     </span>
                   </div>
@@ -513,7 +513,7 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
             className="inline-flex items-center gap-2 rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-brand/20 hover:bg-brand-dim transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
             ) : (
               <Save className="h-4 w-4" />
             )}

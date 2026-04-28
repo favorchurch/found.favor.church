@@ -194,8 +194,8 @@ export function ItemCard({
               className={cn(
                 "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg shadow-sm backdrop-blur-md border transition-all cursor-pointer",
                 currentItem.is_public
-                  ? "bg-black/80 text-brand border-brand/20 hover:bg-black/90"
-                  : "bg-black/80 text-white/80 border-white/10 hover:bg-black/90",
+                  ? "bg-white/80 text-brand border-brand/20 hover:bg-white/90"
+                  : "bg-white/80 text-text-muted border-border-main hover:bg-white/90",
               )}
               title={
                 currentItem.is_public ? "Publicly Visible" : "Internal Check"
@@ -234,7 +234,7 @@ export function ItemCard({
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 {!currentItem.is_public && (
-                  <div className="absolute inset-0 bg-black/50 shadow-[inset_0_0_60px_rgba(0,0,0,0.6)] pointer-events-none" />
+                  <div className="absolute inset-0 bg-white/20 shadow-[inset_0_0_60px_rgba(255,255,255,0.3)] pointer-events-none" />
                 )}
               </>
             ) : (
@@ -263,7 +263,7 @@ export function ItemCard({
                         updateField("status", e.target.value as ItemStatus)
                       }
                       className={cn(
-                        "text-[10px] font-mono font-bold tracking-wider uppercase border border-white/20 rounded-lg cursor-pointer appearance-none pl-2 pr-7 py-1 outline-none bg-black/80 backdrop-blur-md text-white transition-colors focus:ring-1 focus:ring-brand/50 w-[125px]",
+                        "text-[10px] font-mono font-bold tracking-wider uppercase border border-border-main rounded-lg cursor-pointer appearance-none pl-2 pr-7 py-1 outline-none bg-white/80 backdrop-blur-md text-text-main transition-colors focus:ring-1 focus:ring-brand/50 w-[125px]",
                         statusStyles[currentItem.status],
                       )}
                     >
@@ -271,7 +271,7 @@ export function ItemCard({
                       <option value="claimed">{"✅"} Claimed</option>
                       <option value="disposed">{"❌"} Disposed</option>
                     </select>
-                    <ChevronDown className="h-3 w-3 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 text-white" />
+                    <ChevronDown className="h-3 w-3 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 text-text-muted" />
                   </div>
                 ) : admin ? (
                   <Link
@@ -280,7 +280,7 @@ export function ItemCard({
                       e.stopPropagation();
                     }}
                     className={cn(
-                      "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase border shadow-sm backdrop-blur-md bg-black/80 hover:bg-black/90 transition-colors",
+                      "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase border shadow-sm backdrop-blur-md bg-white/80 hover:bg-white/90 transition-colors",
                       statusStyles[currentItem.status],
                     )}
                   >
@@ -290,7 +290,7 @@ export function ItemCard({
                 ) : (
                   <div
                     className={cn(
-                      "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase border shadow-sm backdrop-blur-md bg-black/80",
+                      "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase border shadow-sm backdrop-blur-md bg-white/80",
                       statusStyles[currentItem.status],
                     )}
                   >
@@ -448,7 +448,7 @@ export function ItemCard({
                   (currentItem.status === "disposed" &&
                     !currentItem.disposed_by)
                 }
-                className="p-1 px-3 rounded font-mono text-[9px] font-bold uppercase tracking-widest bg-brand text-black hover:bg-brand-dim transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-1 px-3 rounded font-mono text-[9px] font-bold uppercase tracking-widest bg-brand text-white hover:bg-brand-dim transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "..." : "Save"}
               </button>

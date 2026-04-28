@@ -74,8 +74,8 @@ export function AdminItemsTable({ items }: AdminItemsTableProps) {
                       className={cn(
                         "p-1.5 rounded-lg border transition-all cursor-pointer",
                         isPublic(item)
-                          ? "bg-black/80 text-brand border-brand/20 hover:bg-black/90"
-                          : "bg-black/80 text-white/80 border-white/10 hover:bg-black/90",
+                          ? "bg-white/80 text-brand border-brand/20 hover:bg-white/90"
+                          : "bg-white/80 text-text-muted border-border-main hover:bg-white/90",
                       )}
                       title={isPublic(item) ? "Publicly Visible" : "Internal Check"}
                     >
@@ -106,6 +106,16 @@ export function AdminItemsTable({ items }: AdminItemsTableProps) {
                         )}
                       </div>
                     </Link>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-[10px] font-mono font-bold text-text-muted bg-surface-active px-2 py-1 rounded border border-border-main/50">
+                      {item.item_code}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-xs text-text-muted capitalize">
+                      {item.category?.replace('_', ' ') || "Others"}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 text-xs text-text-muted">
