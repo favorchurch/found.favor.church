@@ -138,9 +138,9 @@ export default async function CatalogPage({
           </div>
           <span className="font-sans text-sm font-black tracking-normal text-white uppercase">
             Lost<span className="text-white/80">&Found</span>{" "}
-            <span className="ml-2 text-white/50 font-medium lowercase tracking-normal">
+            {/* <span className="ml-2 text-white/50 font-medium lowercase tracking-normal">
               Catalog
-            </span>
+            </span> */}
           </span>
         </div>
         <div className="flex items-center gap-4">
@@ -280,6 +280,8 @@ function expandVenueFilter(venues: VenueRow[], slug: string): string[] {
   const target = venues.find((v) => v.slug === slug);
   if (!target) return [slug];
   if (target.parent_slug) return [slug];
-  const children = venues.filter((v) => v.parent_slug === slug).map((v) => v.slug);
+  const children = venues
+    .filter((v) => v.parent_slug === slug)
+    .map((v) => v.slug);
   return [slug, ...children];
 }
