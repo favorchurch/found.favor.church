@@ -4,35 +4,35 @@
   --font-mono: "IBM Plex Mono", monospace;
   --font-sans: Inter, -apple-system, "Helvetica Neue", Arial, sans-serif;
 
-  --color-bg: #0a0a0a;
-  --color-surface: #131313;
-  --color-surface-hover: #1a1a1a;
-  --color-surface-active: #222222;
+  --color-bg: #ffffff;
+  --color-surface: #f9f9f9;
+  --color-surface-hover: #f3f3f3;
+  --color-surface-active: #eeeeee;
   --color-brand: #ff6a00;
   --color-brand-dim: #cc5500;
   --color-brand-bg: rgba(255, 106, 0, 0.08);
   --color-brand-border: rgba(255, 106, 0, 0.25);
-  --color-text-main: #f0f0f0;
-  --color-text-muted: #888;
-  --color-text-dim: #555;
-  --color-border-main: #2a2a2a;
-  --color-border-hover: #333;
+  --color-text-main: #1a1a1a;
+  --color-text-muted: #666666;
+  --color-text-dim: #999999;
+  --color-border-main: #e5e7eb;
+  --color-border-hover: #d1d5db;
 }
 
 :root {
-  --bg: #0a0a0a;
-  --surface: #131313;
-  --surface2: #1a1a1a;
-  --surface3: #222222;
+  --bg: #ffffff;
+  --surface: #f9f9f9;
+  --surface2: #f3f3f3;
+  --surface3: #eeeeee;
   --orange: #ff6a00;
   --orange-dim: #cc5500;
   --orange-bg: rgba(255,106,0,0.08);
   --orange-border: rgba(255,106,0,0.25);
-  --text: #f0f0f0;
-  --text-muted: #888;
-  --text-dim: #555;
-  --border: #2a2a2a;
-  --border2: #333;
+  --text: #1a1a1a;
+  --text-muted: #666666;
+  --text-dim: #999999;
+  --border: #e5e7eb;
+  --border2: #d1d5db;
 }
 
 body {
