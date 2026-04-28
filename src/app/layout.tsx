@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { IBM_Plex_Mono, Inter } from "next/font/google";
 import { Providers } from "./providers";
 import "./globals.css";
 
-const plexSans = IBM_Plex_Sans({
+const interFont = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
   variable: "--font-sans",
 });
 
@@ -28,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${plexSans.variable} ${plexMono.variable} antialiased`}>
+    <html lang="en" className={`${interFont.variable} ${plexMono.variable} antialiased`}>
       <body className="min-h-screen bg-bg text-text-main selection:bg-brand/30">
         <Providers>
           <Toaster position="bottom-right" theme="dark" toastOptions={{ style: { background: '#1c1c1c', border: '1px solid #333' } }} />

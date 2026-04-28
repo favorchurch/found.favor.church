@@ -20,6 +20,7 @@ interface ItemFormProps {
     disposed_date?: string | null;
     disposed_by?: string | null;
   };
+  currentUserEmail?: string | null;
 }
 
 interface ItemUpsertData {
@@ -29,6 +30,7 @@ interface ItemUpsertData {
   date_found: string;
   location: string | null;
   status: ItemStatus;
+  category: "cash_wallet" | "clothing" | "documents_books" | "electronics" | "jewelry" | "tumblers_bottles" | "others";
   is_public: boolean;
   photo_path: string | null;
   claimed_date: string | null;
@@ -37,7 +39,7 @@ interface ItemUpsertData {
   disposed_by: string | null;
 }
 
-export function ItemForm({ initialData }: ItemFormProps) {
+export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
@@ -63,6 +65,7 @@ export function ItemForm({ initialData }: ItemFormProps) {
     const date_found = formData.get("date_found") as string;
     const location = formData.get("location") as string;
     const currentStatus = formData.get("status") as ItemStatus;
+    const category = formData.get("category") as "cash_wallet" | "clothing" | "documents_books" | "electronics" | "jewelry" | "tumblers_bottles" | "others";
     const is_public = formData.get("is_public") === "on";
 
     const claimed_date = formData.get("claimed_date") as string | null;
@@ -105,6 +108,7 @@ export function ItemForm({ initialData }: ItemFormProps) {
           date_found,
           location: location || null,
           status: currentStatus,
+          category,
           is_public,
           photo_path,
           claimed_date: currentStatus === "claimed" ? (claimed_date || new Date().toISOString()) : null,
@@ -238,6 +242,37 @@ export function ItemForm({ initialData }: ItemFormProps) {
               placeholder="e.g. Black Umbrella"
               className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm text-text-main focus:border-brand focus:outline-none transition-colors"
             />
+          </div>
+
+          <div className="space-y-2">
+            <label className="font-mono text-[10px] uppercase tracking-widest text-text-dim">
+              Category *
+            </label>
+            <select
+              required
+              name="category"
+              defaultValue={initialData?.category ?? "others"}
+              className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm font-medium focus:border-brand focus:outline-none transition-colors"
+            >
+              <option value="cash_wallet">Cash & Wallet</option>
+              <option value="clothing">Clothing, Apparel & Accessories</option>
+              <option value="documents_books">Documents, Notebooks & Books</option>
+              <option value="electronics">Electronics & Gadget Accessories</option>
+              <option value="jewelry">Jewelry</option>
+              <option value="tumblers_bottles">Tumblers & Water Bottles</option>
+              <option value="others">Others</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="font-mono text-[10px] uppercase tracking-widest text-text-dim">
+              Item Code
+            </label>
+            <div className="w-full bg-surface-active border border-border-main rounded-lg px-4 py-2.5 flex items-center justify-between">
+              <span className={cn("font-mono text-sm", initialData?.item_code ? "text-brand font-bold" : "text-text-muted italic")}>
+                {initialData?.item_code || "Auto-generated on save"}
+              </span>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -475,7 +510,7 @@ export function ItemForm({ initialData }: ItemFormProps) {
           <button
             disabled={loading}
             type="submit"
-            className="inline-flex items-center gap-2 rounded-lg bg-brand px-8 py-2.5 text-sm font-bold text-black hover:bg-brand-dim transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-brand/20 hover:bg-brand-dim transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />

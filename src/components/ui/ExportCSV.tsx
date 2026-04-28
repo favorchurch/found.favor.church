@@ -13,9 +13,11 @@ export function ExportCSV({ items, filename = "lost-found-items" }: ExportCSVPro
   const exportToCSV = () => {
     if (items.length === 0) return;
 
-    const headers = ["ID", "Name", "Description", "Date Found", "Location", "Status", "Public", "Created At"];
+    const headers = ["ID", "Code", "Category", "Name", "Description", "Date Found", "Location", "Status", "Public", "Created At"];
     const rows = items.map((item) => [
       item.id,
+      item.item_code,
+      item.category,
       item.name,
       item.description || "",
       item.date_found,

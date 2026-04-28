@@ -30,6 +30,8 @@ export interface Item {
   status: ItemStatus;
   photo_path: string | null;
   is_public: boolean;
+  item_code: string;
+  category: "cash_wallet" | "clothing" | "documents_books" | "electronics" | "jewelry" | "tumblers_bottles" | "others";
   created_at: string;
   created_by_email?: string | null;
   claimed_date?: string | null;
@@ -344,8 +346,7 @@ export function ItemCard({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    updateField("status", "disposed");
-                    setIsEditing(true);
+                    setShowDeleteModal(true);
                   }}
                   className="p-1.5 text-text-muted hover:text-red-500 bg-surface-hover rounded-md transition-colors"
                   title="Quick Dispose"

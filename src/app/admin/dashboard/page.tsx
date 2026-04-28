@@ -117,7 +117,7 @@ export default async function DashboardPage({
           <ExportCSV items={(items || []) as Item[]} />
           <Link
             href="/admin/items/new"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-mono font-bold uppercase tracking-widest bg-brand text-black hover:bg-brand-dim transition-all shadow-lg shadow-brand/10"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold bg-brand text-white hover:bg-brand-dim transition-all shadow-sm shadow-brand/20"
           >
             <PlusCircle className="h-4 w-4" />
             New Entry

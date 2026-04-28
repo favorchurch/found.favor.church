@@ -47,6 +47,8 @@ export function AdminItemsTable({ items }: AdminItemsTableProps) {
             <tr className="border-b border-border-main bg-surface-active/50">
               <th className="px-4 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim w-12"></th>
               <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Item</th>
+              <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Code</th>
+              <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Category</th>
               <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Location</th>
               <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Date Found</th>
               <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Added By</th>

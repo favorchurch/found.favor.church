@@ -1,8 +1,12 @@
+import { createClient } from "@/utils/supabase/server";
 import { ItemForm } from "@/components/ui/ItemForm";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-export default function NewItemPage() {
+export default async function NewItemPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
     <div className="p-8 space-y-8">
       <div className="flex items-center gap-4">
@@ -18,7 +22,7 @@ export default function NewItemPage() {
         </div>
       </div>
 
-      <ItemForm />
+      <ItemForm currentUserEmail={user?.email} />
     </div>
   );
 }

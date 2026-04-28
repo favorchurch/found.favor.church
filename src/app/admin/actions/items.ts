@@ -12,6 +12,7 @@ const itemSchema = z.object({
   date_found: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
   location: z.string().nullable().optional(),
   status: z.enum(["unclaimed", "claimed", "disposed"]),
+  category: z.enum(["cash_wallet", "clothing", "documents_books", "electronics", "jewelry", "tumblers_bottles", "others"]).default("others"),
   is_public: z.boolean().default(false),
   photo_path: z.string().nullable().optional(),
   claimed_date: z.string().nullable().optional(),
@@ -26,6 +27,7 @@ interface FoundItemUpdate {
   date_found: string;
   location?: string | null;
   status: "unclaimed" | "claimed" | "disposed";
+  category: string;
   is_public: boolean;
   photo_path?: string | null;
   updated_at: string;
@@ -53,7 +55,6 @@ export async function upsertItem(data: z.infer<typeof itemSchema>) {
     ...itemFields,
     updated_at: new Date().toISOString(),
     updated_by: user.id,
-    updated_by_email: user.email || "Unknown",
   };
 
   if (id) {

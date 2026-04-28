@@ -40,9 +40,9 @@ export default function LoginPage() {
 
         <button
           onClick={handleLogin}
-          className="group relative flex w-full items-center justify-center gap-3 rounded-lg border border-border-main bg-surface px-4 py-3 text-sm font-medium transition-all hover:border-brand/50 hover:bg-surface-hover"
+          className="group relative flex w-full items-center justify-center gap-3 rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-brand/20 hover:bg-brand-dim transition-all"
         >
-          <LogIn className="h-4 w-4 text-text-muted group-hover:text-brand" />
+          <LogIn className="h-4 w-4" />
           Sign in with Google
         </button>
 
