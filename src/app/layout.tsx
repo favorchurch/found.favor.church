@@ -30,7 +30,17 @@ export default function RootLayout({
     <html lang="en" className={`${interFont.variable} ${plexMono.variable} antialiased`}>
       <body className="min-h-screen bg-bg text-text-main selection:bg-brand/30">
         <Providers>
-          <Toaster position="bottom-right" theme="dark" toastOptions={{ style: { background: '#1c1c1c', border: '1px solid #333' } }} />
+          <Toaster 
+            position="bottom-right" 
+            theme="light" 
+            toastOptions={{ 
+              style: { 
+                background: '#ffffff', 
+                border: '1px solid #e5e7eb',
+                color: '#1a1a1a'
+              } 
+            }} 
+          />
           {children}
         </Providers>
       </body>
