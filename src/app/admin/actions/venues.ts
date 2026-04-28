@@ -8,6 +8,8 @@ import { isAdmin } from "@/utils/admin";
 const venueSchema = z.object({
   slug: z.string().min(1).max(50),
   name: z.string().min(1).max(100),
+  parent_slug: z.string().min(1).max(50).nullable().optional(),
+  display_order: z.number().int().optional(),
 });
 
 export async function getVenues() {
@@ -15,6 +17,7 @@ export async function getVenues() {
   const { data, error } = await supabase
     .from("found_item_venues")
     .select("*")
+    .order("display_order")
     .order("name");
 
   if (error) throw error;
@@ -32,9 +35,49 @@ export async function upsertVenue(data: z.infer<typeof venueSchema>) {
   }
 
   const validatedData = venueSchema.parse(data);
+  const parentSlug = validatedData.parent_slug || null;
+
+  if (parentSlug && parentSlug === validatedData.slug) {
+    throw new Error("A venue cannot be its own parent");
+  }
+
+  if (parentSlug) {
+    const { data: parent, error: parentError } = await supabase
+      .from("found_item_venues")
+      .select("slug, parent_slug")
+      .eq("slug", parentSlug)
+      .maybeSingle();
+
+    if (parentError) throw parentError;
+    if (!parent) {
+      throw new Error("Parent venue not found");
+    }
+    if (parent.parent_slug) {
+      throw new Error(
+        "Venues only support one level of nesting; the chosen parent is itself a child venue.",
+      );
+    }
+
+    const { count: childCount, error: childError } = await supabase
+      .from("found_item_venues")
+      .select("slug", { count: "exact", head: true })
+      .eq("parent_slug", validatedData.slug);
+
+    if (childError) throw childError;
+    if (childCount && childCount > 0) {
+      throw new Error(
+        "This venue already has child venues, so it cannot become a child itself.",
+      );
+    }
+  }
 
   const { error } = await supabase.from("found_item_venues").upsert({
-    ...validatedData,
+    slug: validatedData.slug,
+    name: validatedData.name,
+    parent_slug: parentSlug,
+    ...(validatedData.display_order !== undefined
+      ? { display_order: validatedData.display_order }
+      : {}),
     updated_at: new Date().toISOString(),
   });
 
@@ -79,6 +122,17 @@ export async function deleteVenue(slug: string, reassignToSlug: string) {
     .eq("venue", slug);
 
   if (updateError) throw updateError;
+
+  // Null out parent_slug on any children of the venue being deleted so they
+  // become top-level rather than orphaned with a broken FK reference.
+  // (The FK already has ON DELETE SET NULL, but doing it explicitly keeps the
+  // intent obvious and lets us revalidate caches in one shot.)
+  const { error: orphanError } = await supabase
+    .from("found_item_venues")
+    .update({ parent_slug: null })
+    .eq("parent_slug", slug);
+
+  if (orphanError) throw orphanError;
 
   const { error: deleteError } = await supabase
     .from("found_item_venues")

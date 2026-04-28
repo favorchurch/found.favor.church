@@ -34,6 +34,8 @@ interface Category {
 interface Venue {
   slug: string;
   name: string;
+  parent_slug: string | null;
+  display_order: number;
   created_at: string;
 }
 
@@ -325,7 +327,11 @@ function VenuesSettings() {
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
   const [reassignTo, setReassignTo] = useState("");
-  const [formData, setFormData] = useState({ slug: "", name: "" });
+  const [formData, setFormData] = useState<{
+    slug: string;
+    name: string;
+    parent_slug: string;
+  }>({ slug: "", name: "", parent_slug: "" });
 
   const fetchVenues = async () => {
     setLoading(true);
@@ -347,10 +353,14 @@ function VenuesSettings() {
   const handleUpsert = async (e: FormEvent) => {
     e.preventDefault();
     const promise = async () => {
-      await upsertVenue(formData);
+      await upsertVenue({
+        slug: formData.slug,
+        name: formData.name,
+        parent_slug: formData.parent_slug || null,
+      });
       setIsAdding(false);
       setEditingSlug(null);
-      setFormData({ slug: "", name: "" });
+      setFormData({ slug: "", name: "", parent_slug: "" });
       await fetchVenues();
     };
 
@@ -380,8 +390,22 @@ function VenuesSettings() {
 
   const startEdit = (venue: Venue) => {
     setEditingSlug(venue.slug);
-    setFormData({ slug: venue.slug, name: venue.name });
+    setFormData({
+      slug: venue.slug,
+      name: venue.name,
+      parent_slug: venue.parent_slug || "",
+    });
   };
+
+  const venuesBySlug = new Map(venues.map((v) => [v.slug, v]));
+  const venueHasChildren = (slug: string) =>
+    venues.some((v) => v.parent_slug === slug);
+  const parentOptions = venues.filter((v) => {
+    if (v.slug === formData.slug) return false;
+    if (v.parent_slug) return false;
+    if (editingSlug && venueHasChildren(editingSlug)) return false;
+    return true;
+  });
 
   return (
     <SettingsTableShell
@@ -392,7 +416,7 @@ function VenuesSettings() {
       onAdd={() => {
         setIsAdding(true);
         setEditingSlug(null);
-        setFormData({ slug: "", name: "" });
+        setFormData({ slug: "", name: "", parent_slug: "" });
       }}
     >
       {(isAdding || editingSlug) && (
@@ -408,7 +432,7 @@ function VenuesSettings() {
 
           <form
             onSubmit={handleUpsert}
-            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
           >
             <TextField
               label="Display Name"
@@ -421,7 +445,7 @@ function VenuesSettings() {
                   slug: editingSlug ? prev.slug : slugify(name),
                 }))
               }
-              placeholder="e.g. Studio"
+              placeholder="e.g. Shang Office"
             />
             <TextField
               label="Slug (Internal ID)"
@@ -429,7 +453,29 @@ function VenuesSettings() {
               disabled={!!editingSlug}
               value={formData.slug}
               onChange={(slug) => setFormData({ ...formData, slug })}
-              placeholder="studio"
+              placeholder="shang_office"
+            />
+            <SelectField
+              label="Parent Venue (Optional)"
+              value={formData.parent_slug}
+              onChange={(parent_slug) =>
+                setFormData({ ...formData, parent_slug })
+              }
+              options={[
+                { value: "", label: "(Top-level)" },
+                ...parentOptions.map((v) => ({
+                  value: v.slug,
+                  label: v.name,
+                })),
+              ]}
+              disabled={
+                !!editingSlug && venueHasChildren(editingSlug)
+              }
+              hint={
+                editingSlug && venueHasChildren(editingSlug)
+                  ? "Cannot nest: this venue already has children."
+                  : "Group this venue under a top-level venue."
+              }
             />
             <FormActions
               submitLabel={editingSlug ? "Update Venue" : "Create Venue"}
@@ -449,14 +495,15 @@ function VenuesSettings() {
               <tr className="border-b border-border-main bg-surface-active/50">
                 <HeaderCell>Venue Name</HeaderCell>
                 <HeaderCell>Slug</HeaderCell>
+                <HeaderCell>Parent</HeaderCell>
                 <HeaderCell className="text-right">Actions</HeaderCell>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-main">
               {loading ? (
-                <LoadingRow colSpan={3} label="Loading venues..." />
+                <LoadingRow colSpan={4} label="Loading venues..." />
               ) : venues.length === 0 ? (
-                <EmptyRow colSpan={3} label="No venues found." />
+                <EmptyRow colSpan={4} label="No venues found." />
               ) : (
                 venues.map((venue) => (
                   <tr
@@ -465,7 +512,12 @@ function VenuesSettings() {
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-surface-active border border-border-main flex items-center justify-center text-brand">
+                        <div
+                          className={cn(
+                            "h-8 w-8 rounded-lg bg-surface-active border border-border-main flex items-center justify-center text-brand",
+                            venue.parent_slug && "ml-4 opacity-70",
+                          )}
+                        >
                           <MapPin className="h-4 w-4" />
                         </div>
                         <span className="text-sm font-semibold text-text-main">
@@ -474,6 +526,18 @@ function VenuesSettings() {
                       </div>
                     </td>
                     <SlugCell slug={venue.slug} />
+                    <td className="px-6 py-4">
+                      {venue.parent_slug ? (
+                        <span className="text-xs text-text-muted">
+                          {venuesBySlug.get(venue.parent_slug)?.name ||
+                            venue.parent_slug}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-text-dim">
+                          Top-level
+                        </span>
+                      )}
+                    </td>
                     <ActionCell
                       onEdit={() => startEdit(venue)}
                       onDelete={() => {
@@ -613,6 +677,45 @@ function TextField({
           className,
         )}
       />
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+  disabled = false,
+  hint,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<{ value: string; label: string }>;
+  disabled?: boolean;
+  hint?: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <label className="text-[10px] font-sans font-bold uppercase tracking-widest text-text-dim px-1">
+        {label}
+      </label>
+      <select
+        disabled={disabled}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-bg border border-border-hover rounded-xl px-4 py-3 text-sm focus:border-brand focus:outline-none transition-colors disabled:opacity-50"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+      {hint && (
+        <p className="text-[10px] text-text-dim px-1">{hint}</p>
+      )}
     </div>
   );
 }

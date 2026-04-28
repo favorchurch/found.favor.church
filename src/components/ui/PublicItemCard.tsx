@@ -9,7 +9,11 @@ interface PublicItem {
   category: string;
   category_name?: { name: string } | null;
   venue: string | null;
-  venue_name?: { name: string } | null;
+  venue_name?: {
+    name: string;
+    parent_slug: string | null;
+    parent?: { name: string } | null;
+  } | null;
   location: string | null;
   date_found: string;
 }
@@ -54,16 +58,21 @@ export function PublicItemCard({ item, className }: PublicItemCardProps) {
         <div className="mt-4 flex flex-row items-center justify-between gap-2 border-t border-border-main/50 pt-3 text-[10px] text-text-dim uppercase tracking-tight font-medium">
           <div className="flex items-center gap-1.5 min-w-0">
             <MapPin className="h-3 w-3 shrink-0 opacity-60" />
-            {item.venue_name?.name || item.location ? (
-              <span className="truncate">
-                {item.venue_name?.name || item.location}
-                {item.venue_name?.name && item.location
-                  ? `, ${item.location}`
-                  : ""}
-              </span>
-            ) : (
-              <span className="italic opacity-50">No location</span>
-            )}
+            {(() => {
+              const parentName = item.venue_name?.parent?.name;
+              const venueName = item.venue_name?.name;
+              const venuePath = parentName && venueName
+                ? `${parentName} → ${venueName}`
+                : venueName || null;
+              const fullLocation = [venuePath, item.location]
+                .filter(Boolean)
+                .join(", ");
+              return fullLocation ? (
+                <span className="truncate">{fullLocation}</span>
+              ) : (
+                <span className="italic opacity-50">No location</span>
+              );
+            })()}
           </div>
           <div className="flex items-center gap-1.5 shrink-0 opacity-80">
             <Calendar className="h-3 w-3 opacity-60" />
