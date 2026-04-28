@@ -61,12 +61,14 @@ export function ItemCard({
   hideStatus = false,
 }: ItemCardProps) {
   const router = useRouter();
+  const [optimisticItem, setOptimisticItem] = useState(item);
   const [formData, setFormData] = useState<Partial<Item>>({});
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [deleted, setDeleted] = useState(false);
 
-  const currentItem = { ...item, ...formData };
+  const currentItem = { ...optimisticItem, ...formData };
   const hasChanges = Object.keys(formData).length > 0;
 
   const photoUrl = getPhotoUrl(currentItem.photo_path);
@@ -95,7 +97,8 @@ export function ItemCard({
       return;
     }
 
-    const updates = { ...item, ...formData };
+    const previousItem = optimisticItem;
+    const updates = { ...optimisticItem, ...formData };
 
     if (updates.status === "claimed") {
       updates.claimed_date = updates.claimed_date || new Date().toISOString();
@@ -106,15 +109,16 @@ export function ItemCard({
 
     setFormData({});
     setIsEditing(false);
+    setOptimisticItem(updates);
     setLoading(true);
 
     toast.promise(upsertItem(updates), {
       loading: "Updating item...",
-      success: () => {
-        router.refresh();
-        return "Item updated seamlessly!";
+      success: "Item updated seamlessly!",
+      error: () => {
+        setOptimisticItem(previousItem);
+        return "Failed to update item";
       },
-      error: "Failed to update item",
       finally: () => setLoading(false),
     });
   };
@@ -122,16 +126,15 @@ export function ItemCard({
   const togglePrivacy = () => {
     const next = !currentItem.is_public;
     setFormData((prev) => ({ ...prev, is_public: next }));
+    setOptimisticItem((prev) => ({ ...prev, is_public: next }));
     setLoading(true);
 
-    toast.promise(upsertItem({ ...item, is_public: next }), {
+    toast.promise(upsertItem({ ...optimisticItem, is_public: next }), {
       loading: "Updating privacy...",
-      success: () => {
-        router.refresh();
-        return next ? "Item is now public" : "Item is now private";
-      },
+      success: next ? "Item is now public" : "Item is now private",
       error: () => {
         setFormData((prev) => ({ ...prev, is_public: !next }));
+        setOptimisticItem((prev) => ({ ...prev, is_public: !next }));
         return "Failed to update privacy";
       },
       finally: () => setLoading(false),
@@ -141,14 +144,15 @@ export function ItemCard({
   const handleDelete = () => {
     setShowDeleteModal(false);
     setLoading(true);
+    setDeleted(true);
 
     toast.promise(deleteItem(item.id, item.photo_path), {
       loading: "Deleting item...",
-      success: () => {
-        router.refresh();
-        return "Item deleted";
+      success: "Item deleted",
+      error: () => {
+        setDeleted(false);
+        return "Failed to delete item";
       },
-      error: "Failed to delete item",
       finally: () => setLoading(false),
     });
   };
@@ -164,6 +168,10 @@ export function ItemCard({
     claimed: "✅ ",
     disposed: "❌ ",
   };
+
+  if (deleted) {
+    return null;
+  }
 
   return (
     <>

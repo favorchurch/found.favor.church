@@ -28,20 +28,47 @@ export default async function DashboardPage({
 
   const supabase = await createClient();
 
-  // Fetch Stats
-  const { data: statsData, error: statsError } = await supabase
-    .from("found_items")
-    .select("status, archived_at, is_public");
+  const [
+    activeCountResult,
+    unclaimedCountResult,
+    claimedCountResult,
+    disposedCountResult,
+  ] = await Promise.all([
+    supabase
+      .from("found_items")
+      .select("*", { count: "exact", head: true })
+      .is("archived_at", null),
+    supabase
+      .from("found_items")
+      .select("*", { count: "exact", head: true })
+      .is("archived_at", null)
+      .eq("status", "unclaimed"),
+    supabase
+      .from("found_items")
+      .select("*", { count: "exact", head: true })
+      .is("archived_at", null)
+      .eq("status", "claimed"),
+    supabase
+      .from("found_items")
+      .select("*", { count: "exact", head: true })
+      .is("archived_at", null)
+      .eq("status", "disposed"),
+  ]);
+
+  const statsError =
+    activeCountResult.error ||
+    unclaimedCountResult.error ||
+    claimedCountResult.error ||
+    disposedCountResult.error;
 
   if (statsError) {
     console.error("Stats fetch error:", statsError);
   }
 
-  const total = statsData?.length || 0;
-  const unclaimed = statsData?.filter(i => i.status === 'unclaimed' && !i.archived_at).length || 0;
-  const claimed = statsData?.filter(i => i.status === 'claimed' && !i.archived_at).length || 0;
-  const disposed = statsData?.filter(i => i.status === 'disposed' && !i.archived_at).length || 0;
-  const archived = statsData?.filter(i => i.archived_at).length || 0;
+  const active = activeCountResult.count ?? 0;
+  const unclaimed = unclaimedCountResult.count ?? 0;
+  const claimed = claimedCountResult.count ?? 0;
+  const disposed = disposedCountResult.count ?? 0;
 
   // Sorting logic
   let sortField = "created_at";
@@ -76,7 +103,10 @@ export default async function DashboardPage({
   // Fetch Items with pagination
   let dbQuery = supabase
     .from("found_items")
-    .select("*, category_name:found_item_categories(name), venue_name:found_item_venues(name)", { count: "exact" })
+    .select(
+      "id, name, description, date_found, location, venue, status, photo_path, is_public, item_code, category, created_at, created_by_email, claimed_date, claimed_by, disposed_date, disposed_by, category_name:found_item_categories(name), venue_name:found_item_venues(name)",
+      { count: "exact" },
+    )
     .is("archived_at", null)
     .order(sortField, { ascending });
 
@@ -96,6 +126,7 @@ export default async function DashboardPage({
   }
 
   const totalFiltered = count ?? 0;
+  const dashboardItems = (items || []) as unknown as Item[];
 
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto">
@@ -113,7 +144,7 @@ export default async function DashboardPage({
             <Globe className="h-3.5 w-3.5" />
             Public Catalog
           </Link>
-          <ExportCSV items={(items || []) as Item[]} />
+          <ExportCSV items={dashboardItems} />
           <Link
             href="/admin/items/new"
             className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold bg-brand text-white hover:bg-brand-dim transition-all shadow-sm shadow-brand/20"
@@ -126,7 +157,7 @@ export default async function DashboardPage({
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Active Items" value={total - archived} color="text-brand" icon={<Inbox className="h-4 w-4" />} />
+        <StatCard label="Active Items" value={active} color="text-brand" icon={<Inbox className="h-4 w-4" />} />
         <StatCard label="Waiting" value={unclaimed} color="text-yellow-500" icon={<ArrowRightCircle className="h-4 w-4" />} />
         <StatCard label="Resolved" value={claimed} color="text-emerald-500" icon={<BadgeCheck className="h-4 w-4" />} />
         <StatCard label="Disposed" value={disposed} color="text-red-500" icon={<Trash2 className="h-4 w-4" />} />
@@ -162,7 +193,7 @@ export default async function DashboardPage({
 
       {/* Items Section */}
       <ErrorBoundary>
-        <AdminItemsView items={(items || []) as Item[]} />
+        <AdminItemsView items={dashboardItems} />
       </ErrorBoundary>
 
       <Pagination total={totalFiltered} />

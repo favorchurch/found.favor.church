@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   Edit2,
@@ -113,42 +114,48 @@ function TabButton({
 }
 
 function CategoriesSettings() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isAdding, setIsAdding] = useState(false);
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
   const [reassignTo, setReassignTo] = useState("");
   const [formData, setFormData] = useState({ slug: "", name: "", prefix: "" });
 
-  const fetchCategories = async () => {
-    setLoading(true);
-    try {
-      const data = await getCategories();
-      setCategories(data as Category[]);
-    } catch {
-      toast.error("Failed to fetch categories");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const categoriesQuery = useQuery({
+    queryKey: ["found-item-categories"],
+    queryFn: async () => (await getCategories()) as Category[],
+  });
+  const categories = categoriesQuery.data ?? [];
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchCategories();
-  }, []);
-
-  const handleUpsert = async (e: FormEvent) => {
-    e.preventDefault();
-    const promise = async () => {
-      await upsertCategory(formData);
+  const upsertMutation = useMutation({
+    mutationFn: upsertCategory,
+    onSuccess: async () => {
       setIsAdding(false);
       setEditingSlug(null);
       setFormData({ slug: "", name: "", prefix: "" });
-      await fetchCategories();
-    };
+      await queryClient.invalidateQueries({ queryKey: ["found-item-categories"] });
+    },
+  });
 
-    toast.promise(promise(), {
+  const deleteMutation = useMutation({
+    mutationFn: ({
+      slug,
+      reassignToSlug,
+    }: {
+      slug: string;
+      reassignToSlug: string;
+    }) => deleteCategory(slug, reassignToSlug),
+    onSuccess: async () => {
+      setShowDeleteModal(null);
+      setReassignTo("");
+      await queryClient.invalidateQueries({ queryKey: ["found-item-categories"] });
+    },
+  });
+
+  const handleUpsert = async (e: FormEvent) => {
+    e.preventDefault();
+
+    toast.promise(upsertMutation.mutateAsync(formData), {
       loading: "Saving category...",
       success: "Category saved!",
       error: (err) => err.message || "Failed to save category",
@@ -158,18 +165,17 @@ function CategoriesSettings() {
   const handleDelete = async () => {
     if (!showDeleteModal || !reassignTo) return;
 
-    const promise = async () => {
-      await deleteCategory(showDeleteModal, reassignTo);
-      setShowDeleteModal(null);
-      setReassignTo("");
-      await fetchCategories();
-    };
-
-    toast.promise(promise(), {
+    toast.promise(
+      deleteMutation.mutateAsync({
+        slug: showDeleteModal,
+        reassignToSlug: reassignTo,
+      }),
+      {
       loading: "Deleting category and reassigning items...",
       success: "Category deleted and items reassigned!",
       error: (err) => err.message || "Failed to delete category",
-    });
+      },
+    );
   };
 
   const startEdit = (cat: Category) => {
@@ -261,8 +267,10 @@ function CategoriesSettings() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border-main">
-              {loading ? (
+              {categoriesQuery.isLoading ? (
                 <LoadingRow colSpan={4} label="Loading categories..." />
+              ) : categoriesQuery.isError ? (
+                <EmptyRow colSpan={4} label="Failed to load categories." />
               ) : categories.length === 0 ? (
                 <EmptyRow colSpan={4} label="No categories found." />
               ) : (
@@ -321,8 +329,7 @@ function CategoriesSettings() {
 }
 
 function VenuesSettings() {
-  const [venues, setVenues] = useState<Venue[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isAdding, setIsAdding] = useState(false);
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
@@ -333,59 +340,67 @@ function VenuesSettings() {
     parent_slug: string;
   }>({ slug: "", name: "", parent_slug: "" });
 
-  const fetchVenues = async () => {
-    setLoading(true);
-    try {
-      const data = await getVenues();
-      setVenues(data as Venue[]);
-    } catch {
-      toast.error("Failed to fetch venues");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const venuesQuery = useQuery({
+    queryKey: ["found-item-venues"],
+    queryFn: async () => (await getVenues()) as Venue[],
+  });
+  const venues = venuesQuery.data ?? [];
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchVenues();
-  }, []);
-
-  const handleUpsert = async (e: FormEvent) => {
-    e.preventDefault();
-    const promise = async () => {
-      await upsertVenue({
-        slug: formData.slug,
-        name: formData.name,
-        parent_slug: formData.parent_slug || null,
-      });
+  const upsertMutation = useMutation({
+    mutationFn: upsertVenue,
+    onSuccess: async () => {
       setIsAdding(false);
       setEditingSlug(null);
       setFormData({ slug: "", name: "", parent_slug: "" });
-      await fetchVenues();
-    };
+      await queryClient.invalidateQueries({ queryKey: ["found-item-venues"] });
+    },
+  });
 
-    toast.promise(promise(), {
-      loading: "Saving venue...",
-      success: "Venue saved!",
-      error: (err) => err.message || "Failed to save venue",
-    });
+  const deleteMutation = useMutation({
+    mutationFn: ({
+      slug,
+      reassignToSlug,
+    }: {
+      slug: string;
+      reassignToSlug: string;
+    }) => deleteVenue(slug, reassignToSlug),
+    onSuccess: async () => {
+      setShowDeleteModal(null);
+      setReassignTo("");
+      await queryClient.invalidateQueries({ queryKey: ["found-item-venues"] });
+    },
+  });
+
+  const handleUpsert = async (e: FormEvent) => {
+    e.preventDefault();
+
+    toast.promise(
+      upsertMutation.mutateAsync({
+        ...formData,
+        parent_slug: formData.parent_slug || null,
+      }),
+      {
+        loading: "Saving venue...",
+        success: "Venue saved!",
+        error: (err) => err.message || "Failed to save venue",
+      },
+    );
   };
 
   const handleDelete = async () => {
     if (!showDeleteModal || !reassignTo) return;
 
-    const promise = async () => {
-      await deleteVenue(showDeleteModal, reassignTo);
-      setShowDeleteModal(null);
-      setReassignTo("");
-      await fetchVenues();
-    };
-
-    toast.promise(promise(), {
-      loading: "Deleting venue and reassigning items...",
-      success: "Venue deleted and items reassigned!",
-      error: (err) => err.message || "Failed to delete venue",
-    });
+    toast.promise(
+      deleteMutation.mutateAsync({
+        slug: showDeleteModal,
+        reassignToSlug: reassignTo,
+      }),
+      {
+        loading: "Deleting venue and reassigning items...",
+        success: "Venue deleted and items reassigned!",
+        error: (err) => err.message || "Failed to delete venue",
+      },
+    );
   };
 
   const startEdit = (venue: Venue) => {
@@ -500,8 +515,10 @@ function VenuesSettings() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border-main">
-              {loading ? (
+              {venuesQuery.isLoading ? (
                 <LoadingRow colSpan={4} label="Loading venues..." />
+              ) : venuesQuery.isError ? (
+                <EmptyRow colSpan={4} label="Failed to load venues." />
               ) : venues.length === 0 ? (
                 <EmptyRow colSpan={4} label="No venues found." />
               ) : (

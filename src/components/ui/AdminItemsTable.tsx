@@ -6,7 +6,6 @@ import { Calendar, MapPin, CameraOff, ChevronRight, Eye, EyeOff } from "lucide-r
 import Link from "next/link";
 import { type Item } from "./ItemCard";
 import { StatusBadge } from "./StatusBadge";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/utils/cn";
 import { getPhotoUrl } from "@/utils/photo";
@@ -17,7 +16,6 @@ interface AdminItemsTableProps {
 }
 
 export function AdminItemsTable({ items }: AdminItemsTableProps) {
-  const router = useRouter();
   const [privacyCache, setPrivacyCache] = useState<Record<string, boolean>>({});
 
   const isPublic = (item: Item) =>
@@ -32,7 +30,6 @@ export function AdminItemsTable({ items }: AdminItemsTableProps) {
         is_public: next,
       });
       toast.success(next ? "Item is now public" : "Item is now private");
-      router.refresh();
     } catch {
       setPrivacyCache((prev) => ({ ...prev, [item.id]: !next }));
       toast.error("Failed to update privacy");

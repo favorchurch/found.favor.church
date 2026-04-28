@@ -2,6 +2,8 @@ import { createClient } from "@/utils/supabase/server";
 import { ItemForm } from "@/components/ui/ItemForm";
 import { notFound } from "next/navigation";
 import { ModalOverlay } from "@/components/ui/ModalOverlay";
+import { getCategories } from "@/app/admin/actions/categories";
+import { getVenues } from "@/app/admin/actions/venues";
 
 export default async function EditItemModalPage({
   params,
@@ -11,11 +13,15 @@ export default async function EditItemModalPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: item, error } = await supabase
-    .from("found_items")
-    .select("*, category_name:found_item_categories(name), venue_name:found_item_venues(name)")
-    .eq("id", id)
-    .single();
+  const [{ data: item, error }, categories, venues] = await Promise.all([
+    supabase
+      .from("found_items")
+      .select("*, category_name:found_item_categories(name), venue_name:found_item_venues(name)")
+      .eq("id", id)
+      .single(),
+    getCategories(),
+    getVenues(),
+  ]);
 
   if (error || !item) {
     notFound();
@@ -36,7 +42,7 @@ export default async function EditItemModalPage({
         </div>
       </div>
       <div className="p-2 sm:p-6 pb-8">
-        <ItemForm initialData={item} />
+        <ItemForm initialData={item} categories={categories} venues={venues} />
         <p className="text-xs text-text-muted mt-1 uppercase tracking-tighter">
           ID: {id}
         </p>

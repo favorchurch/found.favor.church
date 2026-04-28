@@ -3,6 +3,8 @@ import { ItemForm } from "@/components/ui/ItemForm";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getCategories } from "@/app/admin/actions/categories";
+import { getVenues } from "@/app/admin/actions/venues";
 
 export default async function EditItemPage({
   params,
@@ -12,11 +14,15 @@ export default async function EditItemPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: item, error } = await supabase
-    .from("found_items")
-    .select("*, category_name:found_item_categories(name), venue_name:found_item_venues(name)")
-    .eq("id", id)
-    .single();
+  const [{ data: item, error }, categories, venues] = await Promise.all([
+    supabase
+      .from("found_items")
+      .select("*, category_name:found_item_categories(name), venue_name:found_item_venues(name)")
+      .eq("id", id)
+      .single(),
+    getCategories(),
+    getVenues(),
+  ]);
 
   if (error || !item) {
     notFound();
@@ -48,7 +54,7 @@ export default async function EditItemPage({
         </div>
       </div>
 
-      <ItemForm initialData={item} />
+      <ItemForm initialData={item} categories={categories} venues={venues} />
     </div>
   );
 }

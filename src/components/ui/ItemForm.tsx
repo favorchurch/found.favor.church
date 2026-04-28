@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Trash2, Save, Camera, Globe, Lock } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useRouter } from "next/navigation";
@@ -21,6 +21,8 @@ interface ItemFormProps {
     disposed_by?: string | null;
   };
   currentUserEmail?: string;
+  categories?: Array<{ slug: string; name: string }>;
+  venues?: Array<{ slug: string; name: string }>;
 }
 
 interface ItemUpsertData {
@@ -40,7 +42,11 @@ interface ItemUpsertData {
   disposed_by: string | null;
 }
 
-export function ItemForm({ initialData }: ItemFormProps) {
+export function ItemForm({
+  initialData,
+  categories = [],
+  venues = [],
+}: ItemFormProps) {
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
@@ -55,20 +61,6 @@ export function ItemForm({ initialData }: ItemFormProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(
     getPhotoUrl(initialData?.photo_path ?? null),
   );
-  const [categories, setCategories] = useState<{slug: string, name: string}[]>([]);
-  const [venues, setVenues] = useState<{slug: string, name: string}[]>([]);
-
-  useEffect(() => {
-    import("@/app/admin/actions/categories")
-      .then((m) => m.getCategories())
-      .then(setCategories)
-      .catch(() => toast.error("Failed to load categories"));
-    import("@/app/admin/actions/venues")
-      .then((m) => m.getVenues())
-      .then(setVenues)
-      .catch(() => toast.error("Failed to load venues"));
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -135,7 +127,6 @@ export function ItemForm({ initialData }: ItemFormProps) {
 
         await upsertItem(itemData);
         router.push("/admin/dashboard");
-        router.refresh();
       } finally {
         setLoading(false);
       }
@@ -156,7 +147,6 @@ export function ItemForm({ initialData }: ItemFormProps) {
       try {
         await deleteItem(initialData.id, initialData.photo_path);
         router.push("/admin/dashboard");
-        router.refresh();
       } finally {
         setLoading(false);
         setShowDeleteModal(false);

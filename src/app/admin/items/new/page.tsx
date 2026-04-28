@@ -2,10 +2,20 @@ import { createClient } from "@/utils/supabase/server";
 import { ItemForm } from "@/components/ui/ItemForm";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { getCategories } from "@/app/admin/actions/categories";
+import { getVenues } from "@/app/admin/actions/venues";
 
 export default async function NewItemPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const [
+    { data: { user } },
+    categories,
+    venues,
+  ] = await Promise.all([
+    supabase.auth.getUser(),
+    getCategories(),
+    getVenues(),
+  ]);
 
   return (
     <div className="p-8 space-y-8">
@@ -22,7 +32,11 @@ export default async function NewItemPage() {
         </div>
       </div>
 
-      <ItemForm currentUserEmail={user?.email} />
+      <ItemForm
+        currentUserEmail={user?.email}
+        categories={categories}
+        venues={venues}
+      />
     </div>
   );
 }
