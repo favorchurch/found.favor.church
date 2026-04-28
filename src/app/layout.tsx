@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Inter } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Providers } from "./providers";
 import "./globals.css";
 
 const interFont = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
-});
-
-const plexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-mono",
 });
 
 export const metadata: Metadata = {
@@ -23,11 +17,13 @@ import { Toaster } from "sonner";
 
 export default function RootLayout({
   children,
+  modal,
 }: Readonly<{
   children: React.ReactNode;
+  modal: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${interFont.variable} ${plexMono.variable} antialiased`}>
+    <html lang="en" className={`${interFont.variable} antialiased`}>
       <body className="min-h-screen bg-bg text-text-main selection:bg-brand/30">
         <Providers>
           <Toaster 
@@ -42,6 +38,7 @@ export default function RootLayout({
             }} 
           />
           {children}
+          {modal}
         </Providers>
       </body>
     </html>

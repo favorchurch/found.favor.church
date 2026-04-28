@@ -9,7 +9,7 @@ export default function AuthErrorCodePage() {
           <AlertTriangle className="h-8 w-8 text-red-500" />
         </div>
         <div className="space-y-3">
-          <h1 className="font-mono text-xl font-bold tracking-widest text-text-main uppercase">
+          <h1 className="font-sans text-xl font-bold tracking-widest text-text-main uppercase">
             Authentication Error
           </h1>
           <p className="text-sm text-text-muted">

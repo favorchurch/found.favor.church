@@ -18,7 +18,7 @@ export default async function NewItemPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-text-main">Add New Item</h1>
-          <p className="text-sm text-text-muted mt-1 uppercase tracking-tighter font-mono">Found Favor Church &bull; Lost & Found</p>
+          <p className="text-sm text-text-muted mt-1 uppercase tracking-tighter font-sans">Found Favor Church &bull; Lost & Found</p>
         </div>
       </div>
 

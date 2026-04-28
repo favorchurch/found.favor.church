@@ -71,10 +71,10 @@ export function ConfirmModal({
           </div>
 
           <div className="space-y-1">
-            <h3 className="text-lg font-bold text-text-main font-mono uppercase tracking-widest">
+            <h3 className="text-lg font-bold text-text-main font-sans uppercase tracking-widest">
               {title}
             </h3>
-            <p className="text-xs text-text-dim font-mono uppercase leading-relaxed tracking-tighter">
+            <p className="text-xs text-text-dim font-sans uppercase leading-relaxed tracking-tighter">
               {description}
             </p>
           </div>
@@ -84,7 +84,7 @@ export function ConfirmModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-widest text-text-dim hover:text-text-main hover:bg-surface-active transition-all"
+            className="px-4 py-2 rounded-lg text-xs font-sans font-bold uppercase tracking-widest text-text-dim hover:text-text-main hover:bg-surface-active transition-all"
           >
             {cancelText}
           </button>
@@ -92,7 +92,7 @@ export function ConfirmModal({
             type="button"
             disabled={loading}
             onClick={onConfirm}
-            className={`px-6 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-widest transition-all shadow-lg ${
+            className={`px-6 py-2 rounded-lg text-xs font-sans font-bold uppercase tracking-widest transition-all shadow-lg ${
               variant === "danger" ? "bg-red-500 text-white hover:bg-red-600 shadow-red-500/20" : 
               variant === "warning" ? "bg-yellow-500 text-black hover:bg-yellow-600 shadow-yellow-500/20" : 
               "bg-brand text-black hover:bg-brand-dim shadow-brand/20"

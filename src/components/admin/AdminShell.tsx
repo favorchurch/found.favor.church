@@ -44,21 +44,21 @@ export function AdminShell({ user, children, modal }: AdminShellProps) {
 
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
         {/* Mobile Header */}
-        <header className="lg:hidden h-16 flex items-center justify-between px-4 border-b border-border-main bg-surface sticky top-0 z-30">
+        <header className="lg:hidden h-16 flex items-center justify-between px-4 border-b border-brand-dim bg-brand-deep sticky top-0 z-30 shadow-md">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-brand">
-              <svg viewBox="0 0 16 16" className="h-5 w-5 fill-black">
+            <div className="flex h-8 w-8 items-center justify-center rounded bg-white">
+              <svg viewBox="0 0 16 16" className="h-5 w-5 fill-brand">
                 <path d="M8 1a3 3 0 100 6A3 3 0 008 1zM4 4a4 4 0 118 0 4 4 0 01-8 0zm-2 9a6 6 0 1112 0H2z" />
               </svg>
             </div>
-            <span className="font-mono text-sm font-bold tracking-widest text-text-main uppercase">
-               Lost<span className="text-brand">&Found</span>
+            <span className="font-sans text-base font-black tracking-widest text-white uppercase">
+               Lost<span className="text-white/80">&Found</span>
             </span>
           </div>
           
           <button
             onClick={() => setIsMobileOpen(true)}
-            className="p-2 -mr-2 text-text-muted hover:text-brand"
+            className="p-2 -mr-2 text-white/80 hover:text-white"
             aria-label="Open sidebar"
           >
             <Menu className="h-6 w-6" />

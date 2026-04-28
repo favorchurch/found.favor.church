@@ -45,15 +45,15 @@ export function AdminItemsTable({ items }: AdminItemsTableProps) {
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-b border-border-main bg-surface-active/50">
-              <th className="px-4 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim w-12"></th>
-              <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Item</th>
-              <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Code</th>
-              <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Category</th>
-              <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Location</th>
-              <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Date Found</th>
-              <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Added By</th>
-              <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim">Status</th>
-              <th className="px-6 py-4 font-mono text-[10px] uppercase tracking-widest text-text-dim text-right">Actions</th>
+              <th className="px-4 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim w-12"></th>
+              <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Item</th>
+              <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Code</th>
+              <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Category</th>
+              <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Location</th>
+              <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Date Found</th>
+              <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Added By</th>
+              <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Status</th>
+              <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border-main/50">
@@ -108,7 +108,7 @@ export function AdminItemsTable({ items }: AdminItemsTableProps) {
                     </Link>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-[10px] font-mono font-bold text-text-muted bg-surface-active px-2 py-1 rounded border border-border-main/50">
+                    <div className="text-[10px] font-sans font-bold text-text-muted bg-surface-active px-2 py-1 rounded border border-border-main/50">
                       {item.item_code}
                     </div>
                   </td>
@@ -130,7 +130,7 @@ export function AdminItemsTable({ items }: AdminItemsTableProps) {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-[10px] font-mono text-text-muted truncate max-w-[150px]" title={item.created_by_email || "Unknown"}>
+                    <div className="text-[10px] font-sans text-text-muted truncate max-w-[150px]" title={item.created_by_email || "Unknown"}>
                       {item.created_by_email?.split('@')[0] || "Unknown"}
                     </div>
                   </td>

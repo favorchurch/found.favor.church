@@ -11,7 +11,7 @@ export default function NewItemModalPage() {
       </div>
       <div className="p-2 sm:p-6 pb-8">
         <ItemForm />
-        <p className="text-[10px] text-text-dim mt-4 uppercase tracking-widest font-mono">
+        <p className="text-[10px] text-text-dim mt-4 uppercase tracking-widest font-sans">
           Found Favor Church &bull; Lost & Found
         </p>
       </div>

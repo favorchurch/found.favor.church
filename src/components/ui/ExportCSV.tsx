@@ -47,7 +47,7 @@ export function ExportCSV({ items, filename = "lost-found-items" }: ExportCSVPro
     <button
       onClick={exportToCSV}
       disabled={items.length === 0}
-      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-widest border border-border-main bg-surface hover:bg-surface-hover hover:border-border-hover text-text-muted hover:text-text-main transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-sans font-bold uppercase tracking-widest border border-border-main bg-surface hover:bg-surface-hover hover:border-border-hover text-text-muted hover:text-text-main transition-all disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <Download className="h-3.5 w-3.5" />
       Export CSV

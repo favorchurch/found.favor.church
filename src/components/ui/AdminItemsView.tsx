@@ -66,8 +66,8 @@ export function AdminItemsView({ items }: AdminItemsViewProps) {
       ) : (
         <div className="col-span-full h-80 flex flex-col items-center justify-center rounded-xl border border-dashed border-border-main text-center bg-surface/30">
           <Inbox className="h-12 w-12 text-text-dim mb-4 opacity-20" />
-          <p className="text-text-dim text-sm font-mono uppercase tracking-widest">No entries found</p>
-          <Link href="/admin/dashboard" className="mt-4 text-[10px] text-brand border border-brand/20 px-3 py-1.5 rounded hover:bg-brand/10 transition-colors uppercase font-mono tracking-widest">Clear Filters</Link>
+          <p className="text-text-dim text-sm font-sans uppercase tracking-widest">No entries found</p>
+          <Link href="/admin/dashboard" className="mt-4 text-[10px] text-brand border border-brand/20 px-3 py-1.5 rounded hover:bg-brand/10 transition-colors uppercase font-sans tracking-widest">Clear Filters</Link>
         </div>
       )}
     </div>

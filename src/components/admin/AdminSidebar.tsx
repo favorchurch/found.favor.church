@@ -53,7 +53,7 @@ export function AdminSidebar({
       {/* Sidebar */}
       <aside 
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col bg-surface border-r border-border-main transition-all duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen",
+          "fixed inset-y-0 left-0 z-50 flex flex-col bg-brand-deep border-r border-brand-dim transition-all duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen shadow-xl",
           isCollapsed ? "w-20" : "w-64",
           isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
@@ -67,20 +67,20 @@ export function AdminSidebar({
             "flex items-center gap-3 transition-all duration-300 overflow-hidden shrink-0",
             isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
           )}>
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-brand shrink-0">
-               <svg viewBox="0 0 16 16" className="h-5 w-5 fill-black">
+            <div className="flex h-8 w-8 items-center justify-center rounded bg-white shrink-0">
+               <svg viewBox="0 0 16 16" className="h-5 w-5 fill-brand">
                 <path d="M8 1a3 3 0 100 6A3 3 0 008 1zM4 4a4 4 0 118 0 4 4 0 01-8 0zm-2 9a6 6 0 1112 0H2z" />
               </svg>
             </div>
-            <span className="font-mono text-sm font-bold tracking-widest text-text-main uppercase whitespace-nowrap">
-              Lost<span className="text-brand">&Found</span>
+            <span className="font-sans text-base font-black tracking-widest text-white uppercase whitespace-nowrap">
+              Lost<span className="text-white/80">&Found</span>
             </span>
           </div>
 
           {/* Mobile Close Button */}
           <button
             onClick={() => setIsMobileOpen(false)}
-            className="lg:hidden p-2 -mr-2 text-text-muted hover:text-brand transition-colors"
+            className="lg:hidden p-2 -mr-2 text-white/70 hover:text-white transition-colors"
             aria-label="Close sidebar"
           >
             <X className="h-5 w-5" />
@@ -89,7 +89,7 @@ export function AdminSidebar({
           {/* Collapse Toggle (Desktop only) */}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg border border-border-main hover:bg-surface-hover text-text-muted hover:text-brand transition-colors shrink-0"
+            className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 hover:bg-white/10 text-white/70 hover:text-white transition-colors shrink-0"
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {isCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
@@ -103,10 +103,10 @@ export function AdminSidebar({
               key={item.href}
               href={item.href} 
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-mono font-bold uppercase tracking-widest transition-all group",
+                "flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-sans font-black uppercase tracking-[0.2em] transition-all group",
                 isActive(item.href) 
-                  ? "text-brand bg-brand/10" 
-                  : "text-text-muted hover:text-brand hover:bg-brand/10"
+                  ? "text-white bg-white/20" 
+                  : "text-white/70 hover:text-white hover:bg-white/10"
               )}
               title={isCollapsed ? item.label : undefined}
             >
@@ -130,7 +130,7 @@ export function AdminSidebar({
             href="/catalog" 
             target="_blank"
             className={cn(
-              "flex items-center gap-3 px-4 py-2 text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-text-dim hover:text-text-main transition-colors",
+              "flex items-center gap-3 px-4 py-2 text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-white/60 hover:text-white transition-colors",
               isCollapsed && "justify-center px-0"
             )}
             title="Public Catalog"
@@ -148,23 +148,23 @@ export function AdminSidebar({
         {/* Profile Section */}
         <div className="mt-auto p-4 border-t border-border-main">
           <div className={cn(
-            "flex items-center gap-3 px-4 py-3 rounded-lg border border-border-main bg-bg mb-4 transition-all duration-300",
+            "flex items-center gap-3 px-4 py-3 rounded-lg border border-white/20 bg-white/10 mb-4 transition-all duration-300",
             isCollapsed ? "px-2 justify-center" : "px-4"
           )}>
-            <div className="h-8 w-8 rounded-full bg-surface-active border border-border-hover flex items-center justify-center text-[10px] font-mono text-text-muted shrink-0">
+            <div className="h-8 w-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] font-sans text-white/80 shrink-0">
               {user.email?.charAt(0).toUpperCase()}
             </div>
             <div className={cn(
               "flex-1 min-w-0 transition-opacity duration-300",
               isCollapsed ? "opacity-0 invisible" : "opacity-100"
             )}>
-              <p className="text-xs font-medium text-text-main truncate">{user.email}</p>
-              <p className="text-[10px] text-text-dim uppercase font-mono tracking-tighter">Admin Staff</p>
+              <p className="text-xs font-medium text-white truncate">{user.email}</p>
+              <p className="text-[10px] text-white/60 uppercase font-sans tracking-tighter">Admin Staff</p>
             </div>
           </div>
           <form action="/auth/signout" method="POST">
             <button className={cn(
-              "flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-sm text-red-500/80 hover:bg-red-500/10 hover:text-red-500 transition-all",
+              "flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all",
               isCollapsed ? "justify-center" : "justify-start"
             )} title="Sign Out">
               <LogOut className="h-4 w-4 shrink-0" />

@@ -103,13 +103,13 @@ export default async function DashboardPage({
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-brand uppercase font-mono">Items Management</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-brand uppercase font-sans">Items Management</h1>
           <p className="text-[10px] text-text-dim uppercase tracking-widest mt-1">Manage and track lost and found items</p>
         </div>
         <div className="flex items-center gap-3">
           <Link
             href="/catalog"
-            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-widest border border-border-main bg-surface hover:bg-surface-hover hover:border-border-hover text-text-muted hover:text-text-main transition-all"
+            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-sans font-bold uppercase tracking-widest border border-border-main bg-surface hover:bg-surface-hover hover:border-border-hover text-text-muted hover:text-text-main transition-all"
           >
             <Globe className="h-3.5 w-3.5" />
             Public Catalog
@@ -151,7 +151,7 @@ export default async function DashboardPage({
               name="q"
               defaultValue={query}
               placeholder="Search by name..."
-              className="w-full rounded-lg border border-border-hover bg-bg px-10 py-2.5 text-[11px] font-mono text-text-main focus:border-brand focus:outline-none placeholder:text-text-dim/50"
+              className="w-full rounded-lg border border-border-hover bg-bg px-10 py-2.5 text-[11px] font-sans text-text-main focus:border-brand focus:outline-none placeholder:text-text-dim/50"
             />
             {statusFilter !== 'all' && <input type="hidden" name="status" value={statusFilter} />}
           </form>
@@ -175,8 +175,8 @@ function StatCard({ label, value, color, icon }: { label: string; value: number;
   return (
     <div className="bg-surface border border-border-main p-6 rounded-xl flex items-start justify-between group hover:border-border-hover transition-colors">
       <div>
-        <p className="font-mono text-[9px] text-text-dim uppercase tracking-[0.2em]">{label}</p>
-        <p className={`text-3xl font-bold mt-2 font-mono ${color}`}>{value}</p>
+        <p className="font-sans text-[9px] text-text-dim uppercase tracking-[0.2em]">{label}</p>
+        <p className={`text-3xl font-bold mt-2 font-sans ${color}`}>{value}</p>
       </div>
       <div className={`p-3 rounded-lg bg-surface-active border border-border-hover group-hover:scale-110 transition-transform ${color}`}>
         {icon}
@@ -202,7 +202,7 @@ function FilterButton({ active, label, status, currentParams }: { active: boolea
   return (
     <Link
       href={`?${params.toString()}`}
-      className={`px-4 py-2 rounded-lg text-[10px] font-mono font-bold uppercase tracking-widest transition-all border ${
+      className={`px-4 py-2 rounded-lg text-[10px] font-sans font-bold uppercase tracking-widest transition-all border ${
         active
           ? `${getActiveStyles(status)} shadow-lg shadow-black/5`
           : "text-text-dim border-border-hover/50 hover:bg-surface-hover hover:text-text-muted hover:border-border-hover"

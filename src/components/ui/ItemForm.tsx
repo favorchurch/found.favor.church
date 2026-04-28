@@ -222,17 +222,17 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
 
           {initialData?.created_by_email && (
             <div className="p-3 bg-surface-active/50 rounded-lg border border-border-main flex items-center justify-between">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-text-dim">
+              <span className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
                 Source
               </span>
-              <span className="font-mono text-[10px] uppercase tracking-widest text-brand font-bold">
+              <span className="font-sans text-[10px] uppercase tracking-widest text-brand font-bold">
                 {initialData.created_by_email}
               </span>
             </div>
           )}
 
           <div className="space-y-2">
-            <label className="font-mono text-[10px] uppercase tracking-widest text-text-dim">
+            <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
               Item Name *
             </label>
             <input
@@ -245,7 +245,7 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="font-mono text-[10px] uppercase tracking-widest text-text-dim">
+            <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
               Category *
             </label>
             <select
@@ -265,18 +265,18 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="font-mono text-[10px] uppercase tracking-widest text-text-dim">
+            <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
               Item Code
             </label>
             <div className="w-full bg-surface-active border border-border-main rounded-lg px-4 py-2.5 flex items-center justify-between">
-              <span className={cn("font-mono text-sm", initialData?.item_code ? "text-brand font-bold" : "text-text-muted italic")}>
+              <span className={cn("font-sans text-sm", initialData?.item_code ? "text-brand font-bold" : "text-text-muted italic")}>
                 {initialData?.item_code || "Auto-generated on save"}
               </span>
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="font-mono text-[10px] uppercase tracking-widest text-text-dim">
+            <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
               Description
             </label>
             <textarea
@@ -290,7 +290,7 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="font-mono text-[10px] uppercase tracking-widest text-text-dim">
+              <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
                 Date Found *
               </label>
               <input
@@ -305,7 +305,7 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
               />
             </div>
             <div className="space-y-2">
-              <label className="font-mono text-[10px] uppercase tracking-widest text-text-dim">
+              <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
                 Status
               </label>
               <select
@@ -330,7 +330,7 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
             {status === "claimed" && (
               <div className="grid grid-cols-2 gap-4 mt-2 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-lg">
                 <div className="space-y-2">
-                  <label className="font-mono text-[10px] uppercase tracking-widest text-emerald-500">
+                  <label className="font-sans text-[10px] uppercase tracking-widest text-emerald-500">
                     Claimed By *
                   </label>
                   <input
@@ -342,7 +342,7 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="font-mono text-[10px] uppercase tracking-widest text-emerald-500">
+                  <label className="font-sans text-[10px] uppercase tracking-widest text-emerald-500">
                     Date Claimed *
                   </label>
                   <input
@@ -365,7 +365,7 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
             {status === "disposed" && (
               <div className="grid grid-cols-2 gap-4 mt-2 p-3 bg-red-500/5 border border-red-500/20 rounded-lg">
                 <div className="space-y-2">
-                  <label className="font-mono text-[10px] uppercase tracking-widest text-red-500">
+                  <label className="font-sans text-[10px] uppercase tracking-widest text-red-500">
                     Disposed By *
                   </label>
                   <input
@@ -377,7 +377,7 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="font-mono text-[10px] uppercase tracking-widest text-red-500">
+                  <label className="font-sans text-[10px] uppercase tracking-widest text-red-500">
                     Date Disposed *
                   </label>
                   <input
@@ -399,7 +399,7 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="font-mono text-[10px] uppercase tracking-widest text-text-dim">
+            <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
               Location Found
             </label>
             <input
@@ -414,7 +414,7 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
 
         {/* Right Column: Photo */}
         <div className="space-y-6">
-          <label className="font-mono text-[10px] uppercase tracking-widest text-text-dim">
+          <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
             Item Photo
           </label>
           <div
@@ -443,7 +443,7 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
                   </button>
                   <div className="flex items-center gap-2">
                     <Camera className="h-6 w-6 text-text-main" />
-                    <span className="text-text-main font-mono text-xs font-bold uppercase tracking-widest">
+                    <span className="text-text-main font-sans text-xs font-bold uppercase tracking-widest">
                       Change
                     </span>
                   </div>
@@ -453,10 +453,10 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
               <div className="flex flex-col items-center gap-3 text-text-dim group-hover:text-brand transition-colors">
                 <Camera className="h-10 w-10 opacity-40" />
                 <div className="text-center">
-                  <p className="text-xs font-bold uppercase tracking-widest font-mono">
+                  <p className="text-xs font-bold uppercase tracking-widest font-sans">
                     Click to Upload
                   </p>
-                  <p className="text-[10px] mt-1 font-mono uppercase tracking-tighter opacity-60">
+                  <p className="text-[10px] mt-1 font-sans uppercase tracking-tighter opacity-60">
                     JPG, PNG or WebP
                   </p>
                 </div>
@@ -467,7 +467,7 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
             {compressing && (
               <div className="absolute inset-0 bg-surface/80 backdrop-blur-sm flex flex-col items-center justify-center z-10">
                 <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand border-t-transparent mb-2" />
-                <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-brand">
+                <p className="text-[10px] font-sans font-bold uppercase tracking-widest text-brand">
                   Compressing...
                 </p>
               </div>
@@ -489,7 +489,7 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
             <button
               type="button"
               onClick={() => setShowDeleteModal(true)}
-              className="inline-flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-mono font-bold uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-sans font-bold uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-colors"
             >
               <Trash2 className="h-4 w-4" />
               Delete Entry
@@ -503,7 +503,7 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
           <button
             type="button"
             onClick={() => router.back()}
-            className="px-6 py-2 rounded-lg text-sm font-mono font-bold uppercase tracking-widest text-text-dim hover:text-text-main transition-colors"
+            className="px-6 py-2 rounded-lg text-sm font-sans font-bold uppercase tracking-widest text-text-dim hover:text-text-main transition-colors"
           >
             Cancel
           </button>

@@ -240,7 +240,7 @@ export function ItemCard({
             ) : (
               <div className="flex flex-col items-center gap-2 text-text-dim opacity-40">
                 <CameraOff className="h-8 w-8" />
-                <span className="font-mono text-[10px] uppercase">
+                <span className="font-sans text-[10px] uppercase">
                   No photo attached
                 </span>
               </div>
@@ -263,7 +263,7 @@ export function ItemCard({
                         updateField("status", e.target.value as ItemStatus)
                       }
                       className={cn(
-                        "text-[10px] font-mono font-bold tracking-wider uppercase border border-border-main rounded-lg cursor-pointer appearance-none pl-2 pr-7 py-1 outline-none bg-white/80 backdrop-blur-md text-text-main transition-colors focus:ring-1 focus:ring-brand/50 w-[125px]",
+                        "text-[10px] font-sans font-bold tracking-wider uppercase border border-border-main rounded-lg cursor-pointer appearance-none pl-2 pr-7 py-1 outline-none bg-white/80 backdrop-blur-md text-text-main transition-colors focus:ring-1 focus:ring-brand/50 w-[125px]",
                         statusStyles[currentItem.status],
                       )}
                     >
@@ -280,7 +280,7 @@ export function ItemCard({
                       e.stopPropagation();
                     }}
                     className={cn(
-                      "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase border shadow-sm backdrop-blur-md bg-white/80 hover:bg-white/90 transition-colors",
+                      "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-sans text-[10px] font-bold tracking-wider uppercase border shadow-sm backdrop-blur-md bg-white/80 hover:bg-white/90 transition-colors",
                       statusStyles[currentItem.status],
                     )}
                   >
@@ -290,7 +290,7 @@ export function ItemCard({
                 ) : (
                   <div
                     className={cn(
-                      "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase border shadow-sm backdrop-blur-md bg-white/80",
+                      "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-sans text-[10px] font-bold tracking-wider uppercase border shadow-sm backdrop-blur-md bg-white/80",
                       statusStyles[currentItem.status],
                     )}
                   >
@@ -309,7 +309,7 @@ export function ItemCard({
             {!isEditing && hideImage && !hideStatus && (
               <div
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 font-mono text-[9px] font-bold tracking-wider uppercase border bg-surface-active/50",
+                  "inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 font-sans text-[9px] font-bold tracking-wider uppercase border bg-surface-active/50",
                   statusStyles[currentItem.status],
                 )}
               >
@@ -322,7 +322,7 @@ export function ItemCard({
                 autoFocus
                 value={currentItem.name}
                 onChange={(e) => updateField("name", e.target.value)}
-                className="w-full bg-surface-active border border-border-hover rounded px-2 py-1 text-sm font-semibold text-text-main focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/50 transition-all font-mono"
+                className="w-full bg-surface-active border border-border-hover rounded px-2 py-1 text-sm font-semibold text-text-main focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/50 transition-all font-sans"
               />
             ) : (
               <h3 className="line-clamp-1 text-sm font-semibold text-text-main opacity-90 pr-2">
@@ -364,7 +364,7 @@ export function ItemCard({
                 onChange={(e) => updateField("description", e.target.value)}
                 placeholder="Description..."
                 rows={2}
-                className="w-full bg-surface-active border border-border-hover rounded px-2 py-1 text-xs text-text-main focus:border-brand focus:outline-none resize-none hide-scrollbar font-mono"
+                className="w-full bg-surface-active border border-border-hover rounded px-2 py-1 text-xs text-text-main focus:border-brand focus:outline-none resize-none hide-scrollbar font-sans"
               />
             ) : (
               <p className="line-clamp-2 text-xs leading-relaxed text-text-muted">
@@ -374,12 +374,12 @@ export function ItemCard({
           </div>
 
           <div className="mt-4 flex flex-row justify-between gap-2 border-t border-border-main/50 pt-3">
-            <div className="flex items-center gap-2 font-mono text-[10px] text-text-dim">
+            <div className="flex items-center gap-2 font-sans text-[10px] text-text-dim">
               <Calendar className="h-3 w-3" />
               {format(new Date(currentItem.date_found), "MMM dd, yyyy")}
             </div>
             {currentItem.location && (
-              <div className="flex items-center gap-2 font-mono text-[10px] text-text-dim">
+              <div className="flex items-center gap-2 font-sans text-[10px] text-text-dim">
                 <MapPin className="h-3 w-3" />
                 {currentItem.location}
               </div>
@@ -387,7 +387,7 @@ export function ItemCard({
           </div>
 
           {admin && currentItem.created_by_email && (
-            <div className="mt-2 text-[9px] font-mono text-text-dim/60 uppercase tracking-tighter">
+            <div className="mt-2 text-[9px] font-sans text-text-dim uppercase tracking-tighter">
               Added by: {currentItem.created_by_email}
             </div>
           )}
@@ -398,7 +398,7 @@ export function ItemCard({
               currentItem.status === "disposed") && (
               <div className="mt-3 animate-in fade-in slide-in-from-top-2 flex flex-col gap-2 p-2 rounded-lg bg-surface-active border border-border-hover">
                 <div className="space-y-1">
-                  <label className="text-[9px] font-mono uppercase tracking-widest text-text-dim px-1">
+                  <label className="text-[9px] font-sans uppercase tracking-widest text-text-dim px-1">
                     {currentItem.status === "claimed"
                       ? "Claimed By *"
                       : "Disposed By *"}
@@ -435,7 +435,7 @@ export function ItemCard({
               <button
                 onClick={cancelEdits}
                 disabled={loading}
-                className="p-1 px-2 rounded font-mono text-[9px] uppercase tracking-widest text-text-dim hover:text-text-main hover:bg-surface-active transition-colors disabled:opacity-50"
+                className="p-1 px-2 rounded font-sans text-[9px] uppercase tracking-widest text-text-dim hover:text-text-main hover:bg-surface-active transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -448,7 +448,7 @@ export function ItemCard({
                   (currentItem.status === "disposed" &&
                     !currentItem.disposed_by)
                 }
-                className="p-1 px-3 rounded font-mono text-[9px] font-bold uppercase tracking-widest bg-brand text-white hover:bg-brand-dim transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-1 px-3 rounded font-sans text-[9px] font-bold uppercase tracking-widest bg-brand text-white hover:bg-brand-dim transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "..." : "Save"}
               </button>
@@ -460,7 +460,7 @@ export function ItemCard({
             admin &&
             currentItem.claimed_by &&
             currentItem.status === "claimed" && (
-              <span className="text-[9px] font-mono text-emerald-500 opacity-80 uppercase tracking-tighter truncate max-w-[100px]">
+              <span className="text-[9px] font-sans text-emerald-500 opacity-80 uppercase tracking-tighter truncate max-w-[100px]">
                 By {currentItem.claimed_by}
               </span>
             )}
@@ -468,7 +468,7 @@ export function ItemCard({
             admin &&
             currentItem.disposed_by &&
             currentItem.status === "disposed" && (
-              <span className="text-[9px] font-mono text-red-500 opacity-80 uppercase tracking-tighter truncate max-w-[100px]">
+              <span className="text-[9px] font-sans text-red-500 opacity-80 uppercase tracking-tighter truncate max-w-[100px]">
                 By {currentItem.disposed_by}
               </span>
             )}

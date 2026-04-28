@@ -33,17 +33,17 @@ export function Pagination({ total }: PaginationProps) {
       <button
         onClick={() => setPage(page - 1)}
         disabled={page <= 1}
-        className="p-2 rounded-lg border border-border-main bg-surface hover:bg-surface-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        className="p-2 rounded-lg border border-border-main bg-surface hover:bg-surface-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
-      <span className="font-mono text-[10px] text-text-dim uppercase tracking-widest px-3">
+      <span className="font-sans text-[10px] text-text-dim uppercase tracking-widest px-3">
         Page {page} of {totalPages}
       </span>
       <button
         onClick={() => setPage(page + 1)}
         disabled={page >= totalPages}
-        className="p-2 rounded-lg border border-border-main bg-surface hover:bg-surface-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        className="p-2 rounded-lg border border-border-main bg-surface hover:bg-surface-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
         <ChevronRight className="h-4 w-4" />
       </button>

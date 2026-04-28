@@ -29,7 +29,7 @@ export default async function EditItemModalPage({
             UPDATE: {item.name}
           </h2>
           {item.created_by_email && (
-            <p className="text-[10px] font-mono text-text-dim uppercase tracking-widest">
+            <p className="text-[10px] font-sans text-text-dim uppercase tracking-widest">
               Entry by: {item.created_by_email}
             </p>
           )}

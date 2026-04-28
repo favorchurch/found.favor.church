@@ -36,11 +36,11 @@ export default async function EditItemPage({
             UPDATE: {item.name}
           </h1>
           <div className="flex items-center gap-4 mt-1">
-            <p className="text-[10px] text-text-muted uppercase tracking-tighter font-mono">
+            <p className="text-[10px] text-text-muted uppercase tracking-tighter font-sans">
               ID: {id}
             </p>
             {item.created_by_email && (
-              <p className="text-[10px] text-brand/70 uppercase tracking-widest font-mono font-bold">
+              <p className="text-[10px] text-brand/70 uppercase tracking-widest font-sans font-bold">
                 Entry by: {item.created_by_email}
               </p>
             )}
