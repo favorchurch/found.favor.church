@@ -205,16 +205,14 @@ function CatalogCalendar({
                   ? "text-text-main"
                   : "text-text-dim/40",
                 hasItems
-                  ? "hover:bg-brand/10 hover:text-brand"
+                  ? "font-bold text-brand hover:bg-brand/10"
                   : "cursor-default opacity-50",
                 isHighlighted && "bg-brand/10 text-brand ring-1 ring-brand/30",
                 isSameDay(day, new Date()) && "font-bold",
               )}
             >
-              {format(day, "d")}
-              {hasItems && (
-                <span className="absolute bottom-1 h-1.5 w-1.5 rounded-full bg-brand" />
-              )}
+              <span className="relative z-10">{format(day, "d")}</span>
+              {hasItems && <span className="absolute h-7 w-7 rounded-full bg-brand/15" />}
             </button>
           );
         })}
