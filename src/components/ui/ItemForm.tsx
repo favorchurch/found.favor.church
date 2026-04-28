@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Trash2, Save, Camera, Globe, Lock } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useRouter } from "next/navigation";
@@ -20,7 +20,7 @@ interface ItemFormProps {
     disposed_date?: string | null;
     disposed_by?: string | null;
   };
-
+  currentUserEmail?: string;
 }
 
 interface ItemUpsertData {
@@ -29,6 +29,7 @@ interface ItemUpsertData {
   description: string | null;
   date_found: string;
   location: string | null;
+  venue: string | null;
   status: ItemStatus;
   category: string;
   is_public: boolean;
@@ -55,10 +56,18 @@ export function ItemForm({ initialData }: ItemFormProps) {
     getPhotoUrl(initialData?.photo_path ?? null),
   );
   const [categories, setCategories] = useState<{slug: string, name: string}[]>([]);
+  const [venues, setVenues] = useState<{slug: string, name: string}[]>([]);
 
-  useState(() => {
-    import("@/app/admin/actions/categories").then(m => m.getCategories()).then(setCategories);
-  });
+  useEffect(() => {
+    import("@/app/admin/actions/categories")
+      .then((m) => m.getCategories())
+      .then(setCategories)
+      .catch(() => toast.error("Failed to load categories"));
+    import("@/app/admin/actions/venues")
+      .then((m) => m.getVenues())
+      .then(setVenues)
+      .catch(() => toast.error("Failed to load venues"));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -69,6 +78,7 @@ export function ItemForm({ initialData }: ItemFormProps) {
     const description = formData.get("description") as string;
     const date_found = formData.get("date_found") as string;
     const location = formData.get("location") as string;
+    const venue = formData.get("venue") as string;
     const currentStatus = formData.get("status") as ItemStatus;
     const category = formData.get("category") as string;
     const is_public = formData.get("is_public") === "on";
@@ -112,6 +122,7 @@ export function ItemForm({ initialData }: ItemFormProps) {
           description: description || null,
           date_found,
           location: location || null,
+          venue: venue || null,
           status: currentStatus,
           category,
           is_public,
@@ -404,16 +415,36 @@ export function ItemForm({ initialData }: ItemFormProps) {
             )}
           </div>
 
-          <div className="space-y-2">
-            <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
-              Location Found
-            </label>
-            <input
-              name="location"
-              defaultValue={initialData?.location ?? ""}
-              placeholder="e.g. Main Sanctuary, 2nd Floor"
-              className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm text-text-main focus:border-brand focus:outline-none transition-colors"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
+                Venue
+              </label>
+              <select
+                name="venue"
+                defaultValue={initialData?.venue ?? ""}
+                className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm font-medium focus:border-brand focus:outline-none transition-colors"
+              >
+                <option value="">Unassigned</option>
+                {venues.map((venue) => (
+                  <option key={venue.slug} value={venue.slug}>
+                    {venue.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
+                Location Detail
+              </label>
+              <input
+                name="location"
+                defaultValue={initialData?.location ?? ""}
+                placeholder="e.g. Main Sanctuary, 2nd Floor"
+                className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm text-text-main focus:border-brand focus:outline-none transition-colors"
+              />
+            </div>
           </div>
 
         </div>

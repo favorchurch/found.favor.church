@@ -49,7 +49,7 @@ export function AdminItemsTable({ items }: AdminItemsTableProps) {
               <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Item</th>
               <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Code</th>
               <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Category</th>
-              <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Location</th>
+              <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Venue</th>
               <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Date Found</th>
               <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Added By</th>
               <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Status</th>
@@ -120,7 +120,7 @@ export function AdminItemsTable({ items }: AdminItemsTableProps) {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 text-xs text-text-muted">
                       <MapPin className="h-3.5 w-3.5 text-text-dim" />
-                      {item.location || "N/A"}
+                      {item.venue_name?.name || item.location || "N/A"}
                     </div>
                   </td>
                   <td className="px-6 py-4">

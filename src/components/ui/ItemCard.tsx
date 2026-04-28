@@ -27,12 +27,14 @@ export interface Item {
   description: string | null;
   date_found: string;
   location: string | null;
+  venue: string | null;
   status: ItemStatus;
   photo_path: string | null;
   is_public: boolean;
   item_code: string;
   category: string;
   category_name?: { name: string } | null;
+  venue_name?: { name: string } | null;
   created_at: string;
   created_by_email?: string | null;
   claimed_date?: string | null;
@@ -379,10 +381,15 @@ export function ItemCard({
               <Calendar className="h-3 w-3" />
               {format(new Date(currentItem.date_found), "MMM dd, yyyy")}
             </div>
-            {currentItem.location && (
-              <div className="flex items-center gap-2 font-sans text-[10px] text-text-dim">
+            {(currentItem.venue_name?.name || currentItem.location) && (
+              <div className="flex min-w-0 items-center gap-2 font-sans text-[10px] text-text-dim">
                 <MapPin className="h-3 w-3" />
-                {currentItem.location}
+                <span className="truncate">
+                  {currentItem.venue_name?.name || currentItem.location}
+                  {currentItem.venue_name?.name && currentItem.location
+                    ? `, ${currentItem.location}`
+                    : ""}
+                </span>
               </div>
             )}
           </div>

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
-import { PublicItemCard } from "@/components/ui/PublicItemCard";
 import { Search, LogOut } from "lucide-react";
 import { Pagination } from "@/components/ui/Pagination";
 import { PAGE_SIZE } from "@/utils/constants";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Link from "next/link";
+import { PublicCatalogResults } from "@/components/ui/PublicCatalogResults";
+import { cn } from "@/utils/cn";
 
 export const metadata: Metadata = {
   title: "Public Catalog | Lost & Found — Favor Church",
@@ -16,18 +17,29 @@ export const metadata: Metadata = {
 export default async function CatalogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; venue?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const query = params.q || "";
   const statusFilter = params.status || "unclaimed";
+  const venueFilter = params.venue || "all";
   const page = Math.max(1, Number(params.page) || 1);
 
   const supabase = await createClient();
 
+  const { data: venues, error: venuesError } = await supabase
+    .from("found_item_venues")
+    .select("slug, name")
+    .order("name");
+
+  if (venuesError) {
+    console.error("Error fetching venues:", venuesError);
+  }
+  const sortedVenues = sortPublicVenues(venues || []);
+
   let baseQuery = supabase
     .from("found_items")
-    .select("*, category_name:found_item_categories(name)", { count: "exact" })
+    .select("*, category_name:found_item_categories(name), venue_name:found_item_venues(name)", { count: "exact" })
     .eq("is_public", true)
     .is("archived_at", null)
     .order("date_found", { ascending: false });
@@ -40,12 +52,37 @@ export default async function CatalogPage({
     baseQuery = baseQuery.eq("status", statusFilter);
   }
 
+  if (venueFilter !== "all") {
+    baseQuery = baseQuery.eq("venue", venueFilter);
+  }
+
   const from = (page - 1) * PAGE_SIZE;
   const {
     data: items,
     count,
     error,
   } = await baseQuery.range(from, from + PAGE_SIZE - 1);
+
+  let calendarQuery = supabase
+    .from("found_items")
+    .select("id, date_found")
+    .eq("is_public", true)
+    .is("archived_at", null)
+    .order("date_found", { ascending: false });
+
+  if (query) {
+    calendarQuery = calendarQuery.ilike("name", `%${query}%`);
+  }
+
+  if (statusFilter !== "all") {
+    calendarQuery = calendarQuery.eq("status", statusFilter);
+  }
+
+  if (venueFilter !== "all") {
+    calendarQuery = calendarQuery.eq("venue", venueFilter);
+  }
+
+  const { data: calendarItems, error: calendarError } = await calendarQuery;
 
   const {
     data: { user },
@@ -58,6 +95,10 @@ export default async function CatalogPage({
       hint: error.hint,
       code: error.code,
     });
+  }
+
+  if (calendarError) {
+    console.error("Error fetching calendar items:", calendarError);
   }
 
   const total = count ?? 0;
@@ -140,34 +181,37 @@ export default async function CatalogPage({
                 {statusFilter !== "all" && (
                   <input type="hidden" name="status" value={statusFilter} />
                 )}
+                {venueFilter !== "all" && (
+                  <input type="hidden" name="venue" value={venueFilter} />
+                )}
               </form>
             </div>
           </div>
 
+          <div className="mb-6 flex flex-wrap items-center gap-2">
+            <VenueChip
+              label="All"
+              slug="all"
+              active={venueFilter === "all"}
+              currentParams={params}
+            />
+            {sortedVenues.map((venue) => (
+              <VenueChip
+                key={venue.slug}
+                label={venue.name}
+                slug={venue.slug}
+                active={venueFilter === venue.slug}
+                currentParams={params}
+              />
+            ))}
+          </div>
+
           {/* Grid */}
           <ErrorBoundary>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {items && items.length > 0 ? (
-                items.map((item) => (
-                  <PublicItemCard
-                    key={item.id}
-                    item={item as Parameters<typeof PublicItemCard>[0]["item"]}
-                  />
-                ))
-              ) : (
-                <div className="col-span-full flex flex-col items-center justify-center rounded-xl border border-dashed border-border-main py-20 text-center">
-                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface-hover">
-                    <Search className="h-6 w-6 text-text-dim" />
-                  </div>
-                  <h3 className="text-sm font-medium text-text-muted">
-                    No items found
-                  </h3>
-                  <p className="mt-1 text-xs text-text-dim">
-                    Try adjusting your search or filters.
-                  </p>
-                </div>
-              )}
-            </div>
+            <PublicCatalogResults
+              items={(items || []) as Parameters<typeof PublicCatalogResults>[0]["items"]}
+              calendarItems={(calendarItems || []) as Parameters<typeof PublicCatalogResults>[0]["calendarItems"]}
+            />
           </ErrorBoundary>
 
           <Pagination total={total} />
@@ -181,5 +225,58 @@ export default async function CatalogPage({
         </p>
       </footer>
     </div>
+  );
+}
+
+function sortPublicVenues<T extends { slug: string; name: string }>(venues: T[]) {
+  const seededOrder = new Map([
+    ["ynares", 0],
+    ["studio", 1],
+    ["metrotent", 2],
+  ]);
+
+  return [...venues].sort((a, b) => {
+    const aRank = seededOrder.get(a.slug) ?? Number.MAX_SAFE_INTEGER;
+    const bRank = seededOrder.get(b.slug) ?? Number.MAX_SAFE_INTEGER;
+
+    if (aRank !== bRank) {
+      return aRank - bRank;
+    }
+
+    return a.name.localeCompare(b.name);
+  });
+}
+
+function VenueChip({
+  label,
+  slug,
+  active,
+  currentParams,
+}: {
+  label: string;
+  slug: string;
+  active: boolean;
+  currentParams: { q?: string; status?: string; venue?: string; page?: string };
+}) {
+  const params = new URLSearchParams(currentParams);
+  if (slug === "all") {
+    params.delete("venue");
+  } else {
+    params.set("venue", slug);
+  }
+  params.delete("page");
+
+  return (
+    <Link
+      href={`?${params.toString()}`}
+      className={cn(
+        "rounded-full border px-4 py-2 text-[10px] font-sans font-bold uppercase tracking-widest transition-all",
+        active
+          ? "border-brand/40 bg-brand/10 text-brand"
+          : "border-border-main bg-surface text-text-dim hover:border-border-hover hover:bg-surface-hover hover:text-text-main",
+      )}
+    >
+      {label}
+    </Link>
   );
 }

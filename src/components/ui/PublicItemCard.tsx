@@ -8,6 +8,8 @@ interface PublicItem {
   item_code: string;
   category: string;
   category_name?: { name: string } | null;
+  venue: string | null;
+  venue_name?: { name: string } | null;
   location: string | null;
   date_found: string;
 }
@@ -52,8 +54,13 @@ export function PublicItemCard({ item, className }: PublicItemCardProps) {
         <div className="mt-4 flex flex-row items-center justify-between gap-2 border-t border-border-main/50 pt-3 text-[10px] text-text-dim uppercase tracking-tight font-medium">
           <div className="flex items-center gap-1.5 min-w-0">
             <MapPin className="h-3 w-3 shrink-0 opacity-60" />
-            {item.location ? (
-              <span className="truncate">{item.location}</span>
+            {item.venue_name?.name || item.location ? (
+              <span className="truncate">
+                {item.venue_name?.name || item.location}
+                {item.venue_name?.name && item.location
+                  ? `, ${item.location}`
+                  : ""}
+              </span>
             ) : (
               <span className="italic opacity-50">No location</span>
             )}

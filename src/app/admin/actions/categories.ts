@@ -50,6 +50,7 @@ export async function upsertCategory(data: z.infer<typeof categorySchema>) {
   }
 
   revalidatePath("/admin/categories");
+  revalidatePath("/admin/settings");
   revalidatePath("/admin/dashboard");
   revalidatePath("/catalog");
   return { success: true };
@@ -97,6 +98,7 @@ export async function deleteCategory(slug: string, reassignToSlug: string) {
   if (deleteError) throw deleteError;
 
   revalidatePath("/admin/categories");
+  revalidatePath("/admin/settings");
   revalidatePath("/admin/dashboard");
   revalidatePath("/catalog");
   return { success: true };

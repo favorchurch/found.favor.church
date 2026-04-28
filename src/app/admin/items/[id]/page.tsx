@@ -14,7 +14,7 @@ export default async function EditItemPage({
 
   const { data: item, error } = await supabase
     .from("found_items")
-    .select("*")
+    .select("*, category_name:found_item_categories(name), venue_name:found_item_venues(name)")
     .eq("id", id)
     .single();
 

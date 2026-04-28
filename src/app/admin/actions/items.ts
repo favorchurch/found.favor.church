@@ -11,6 +11,7 @@ const itemSchema = z.object({
   description: z.string().nullable().optional(),
   date_found: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
   location: z.string().nullable().optional(),
+  venue: z.string().nullable().optional(),
   status: z.enum(["unclaimed", "claimed", "disposed"]),
   category: z.string().min(1).default("others"),
   is_public: z.boolean().default(false),
@@ -26,6 +27,7 @@ interface FoundItemUpdate {
   description?: string | null;
   date_found: string;
   location?: string | null;
+  venue?: string | null;
   status: "unclaimed" | "claimed" | "disposed";
   category: string;
   is_public: boolean;

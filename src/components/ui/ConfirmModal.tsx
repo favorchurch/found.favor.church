@@ -1,14 +1,15 @@
 "use client";
 
 import { AlertTriangle, X } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 interface ConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
   title: string;
-  description: string;
+  description?: string;
+  children?: ReactNode;
   confirmText?: string;
   cancelText?: string;
   variant?: "danger" | "warning" | "info";
@@ -21,6 +22,7 @@ export function ConfirmModal({
   onConfirm,
   title,
   description,
+  children,
   confirmText = "Confirm",
   cancelText = "Cancel",
   variant = "danger",
@@ -74,10 +76,13 @@ export function ConfirmModal({
             <h3 className="text-lg font-bold text-text-main font-sans uppercase tracking-widest">
               {title}
             </h3>
-            <p className="text-xs text-text-dim font-sans uppercase leading-relaxed tracking-tighter">
-              {description}
-            </p>
+            {description && (
+              <p className="text-xs text-text-dim font-sans uppercase leading-relaxed tracking-tighter">
+                {description}
+              </p>
+            )}
           </div>
+          {children && <div className="mt-5">{children}</div>}
         </div>
 
         <div className="bg-surface-active/30 p-4 flex sm:justify-end gap-2 border-t border-border-main/50">

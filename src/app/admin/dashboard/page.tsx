@@ -76,7 +76,7 @@ export default async function DashboardPage({
   // Fetch Items with pagination
   let dbQuery = supabase
     .from("found_items")
-    .select("*, category_name:found_item_categories(name)", { count: "exact" })
+    .select("*, category_name:found_item_categories(name), venue_name:found_item_venues(name)", { count: "exact" })
     .is("archived_at", null)
     .order(sortField, { ascending });
 

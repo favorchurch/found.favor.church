@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Layers, ShieldAlert, Globe, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
+import { LogOut, Layers, Settings, Globe, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { cn } from "@/utils/cn"; // Checking if this utility exists, if not I'll use clsx
 
 interface AdminSidebarProps {
@@ -31,18 +31,13 @@ export function AdminSidebar({
       icon: Layers,
     },
     {
-      href: "/admin/categories",
-      label: "Categories",
-      icon: Globe, // Or another appropriate icon, let's use Globe or Tag
-    },
-    {
-      href: "/admin/cleanup",
-      label: "System Cleanup",
-      icon: ShieldAlert,
+      href: "/admin/settings",
+      label: "Settings",
+      icon: Settings,
     },
   ];
 
-  const isActive = (href: string) => pathname === href;
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <>
