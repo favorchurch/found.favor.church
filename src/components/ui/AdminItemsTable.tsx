@@ -113,8 +113,8 @@ export function AdminItemsTable({ items }: AdminItemsTableProps) {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-xs text-text-muted capitalize">
-                      {item.category?.replace('_', ' ') || "Others"}
+                    <div className="text-xs text-text-muted">
+                      {item.category_name?.name || "Others"}
                     </div>
                   </td>
                   <td className="px-6 py-4">

@@ -12,7 +12,7 @@ const itemSchema = z.object({
   date_found: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
   location: z.string().nullable().optional(),
   status: z.enum(["unclaimed", "claimed", "disposed"]),
-  category: z.enum(["cash_wallet", "clothing", "documents_books", "electronics", "jewelry", "tumblers_bottles", "others"]).default("others"),
+  category: z.string().min(1).default("others"),
   is_public: z.boolean().default(false),
   photo_path: z.string().nullable().optional(),
   claimed_date: z.string().nullable().optional(),

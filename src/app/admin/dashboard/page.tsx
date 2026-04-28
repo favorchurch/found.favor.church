@@ -27,7 +27,6 @@ export default async function DashboardPage({
   const page = Math.max(1, Number(params.page) || 1);
 
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
 
   // Fetch Stats
   const { data: statsData, error: statsError } = await supabase
@@ -77,7 +76,7 @@ export default async function DashboardPage({
   // Fetch Items with pagination
   let dbQuery = supabase
     .from("found_items")
-    .select("*", { count: "exact" })
+    .select("*, category_name:found_item_categories(name)", { count: "exact" })
     .is("archived_at", null)
     .order(sortField, { ascending });
 

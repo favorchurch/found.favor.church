@@ -31,6 +31,11 @@ export function AdminSidebar({
       icon: Layers,
     },
     {
+      href: "/admin/categories",
+      label: "Categories",
+      icon: Globe, // Or another appropriate icon, let's use Globe or Tag
+    },
+    {
       href: "/admin/cleanup",
       label: "System Cleanup",
       icon: ShieldAlert,
@@ -72,7 +77,7 @@ export function AdminSidebar({
                 <path d="M8 1a3 3 0 100 6A3 3 0 008 1zM4 4a4 4 0 118 0 4 4 0 01-8 0zm-2 9a6 6 0 1112 0H2z" />
               </svg>
             </div>
-            <span className="font-sans text-base font-black tracking-widest text-white uppercase whitespace-nowrap">
+            <span className="font-sans text-base font-black tracking-normal text-white uppercase whitespace-nowrap">
               Lost<span className="text-white/80">&Found</span>
             </span>
           </div>
@@ -103,7 +108,7 @@ export function AdminSidebar({
               key={item.href}
               href={item.href} 
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-sans font-black uppercase tracking-[0.2em] transition-all group",
+                "flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-sans font-black uppercase tracking-normal transition-all group",
                 isActive(item.href) 
                   ? "text-white bg-white/20" 
                   : "text-white/70 hover:text-white hover:bg-white/10"
@@ -130,7 +135,7 @@ export function AdminSidebar({
             href="/catalog" 
             target="_blank"
             className={cn(
-              "flex items-center gap-3 px-4 py-2 text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-white/60 hover:text-white transition-colors",
+              "flex items-center gap-3 px-4 py-2 text-[10px] font-sans font-bold uppercase tracking-normal text-white/60 hover:text-white transition-colors",
               isCollapsed && "justify-center px-0"
             )}
             title="Public Catalog"

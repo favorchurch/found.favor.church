@@ -20,7 +20,7 @@ interface ItemFormProps {
     disposed_date?: string | null;
     disposed_by?: string | null;
   };
-  currentUserEmail?: string | null;
+
 }
 
 interface ItemUpsertData {
@@ -30,7 +30,7 @@ interface ItemUpsertData {
   date_found: string;
   location: string | null;
   status: ItemStatus;
-  category: "cash_wallet" | "clothing" | "documents_books" | "electronics" | "jewelry" | "tumblers_bottles" | "others";
+  category: string;
   is_public: boolean;
   photo_path: string | null;
   claimed_date: string | null;
@@ -39,7 +39,7 @@ interface ItemUpsertData {
   disposed_by: string | null;
 }
 
-export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
+export function ItemForm({ initialData }: ItemFormProps) {
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
@@ -54,6 +54,11 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(
     getPhotoUrl(initialData?.photo_path ?? null),
   );
+  const [categories, setCategories] = useState<{slug: string, name: string}[]>([]);
+
+  useState(() => {
+    import("@/app/admin/actions/categories").then(m => m.getCategories()).then(setCategories);
+  });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -65,7 +70,7 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
     const date_found = formData.get("date_found") as string;
     const location = formData.get("location") as string;
     const currentStatus = formData.get("status") as ItemStatus;
-    const category = formData.get("category") as "cash_wallet" | "clothing" | "documents_books" | "electronics" | "jewelry" | "tumblers_bottles" | "others";
+    const category = formData.get("category") as string;
     const is_public = formData.get("is_public") === "on";
 
     const claimed_date = formData.get("claimed_date") as string | null;
@@ -254,13 +259,14 @@ export function ItemForm({ initialData, currentUserEmail }: ItemFormProps) {
               defaultValue={initialData?.category ?? "others"}
               className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm font-medium focus:border-brand focus:outline-none transition-colors"
             >
-              <option value="cash_wallet">Cash & Wallet</option>
-              <option value="clothing">Clothing, Apparel & Accessories</option>
-              <option value="documents_books">Documents, Notebooks & Books</option>
-              <option value="electronics">Electronics & Gadget Accessories</option>
-              <option value="jewelry">Jewelry</option>
-              <option value="tumblers_bottles">Tumblers & Water Bottles</option>
-              <option value="others">Others</option>
+              {categories.map((cat) => (
+                <option key={cat.slug} value={cat.slug}>
+                  {cat.name}
+                </option>
+              ))}
+              {categories.length === 0 && (
+                <option value="others">Others</option>
+              )}
             </select>
           </div>
 

@@ -10,3 +10,4 @@
 {"source":"user-event","type":"click","text":"A\n    \n      Classic Favor Light (Beige)\n      \n        \n        \n        \n      \n      Warm, inviting, and very \"Favor\". Uses the iconic cream/beige background with red and blue accents.","choice":"light-beige","id":null,"timestamp":1777351785471}
 {"source":"user-event","type":"click","text":"C\n    \n      Favor Clean White\n      \n        \n        \n        \n      \n      Minimalist and high-contrast. Works great for admin tools. Pure white background with bold blue and red.","choice":"clean-white","id":null,"timestamp":1777351786257}
 {"type":"screen-added","file":"/Users/rico/Git/found.favor.church/.superpowers/brainstorm/33961-1777351723/content/orange-white.html"}
+{"type":"server-stopped","reason":"idle timeout"}

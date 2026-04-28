@@ -27,7 +27,7 @@ export function LoginForm() {
         </svg>
       </div>
       <div className="space-y-3">
-        <h1 className="font-sans text-xl font-bold tracking-widest text-text-main uppercase">
+        <h1 className="font-sans text-xl font-bold tracking-normal text-text-main uppercase">
           <span className="text-brand">{"LOST"}</span>{"&FOUND"}
         </h1>
         <p className="text-sm text-text-muted">

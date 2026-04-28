@@ -31,7 +31,8 @@ export interface Item {
   photo_path: string | null;
   is_public: boolean;
   item_code: string;
-  category: "cash_wallet" | "clothing" | "documents_books" | "electronics" | "jewelry" | "tumblers_bottles" | "others";
+  category: string;
+  category_name?: { name: string } | null;
   created_at: string;
   created_by_email?: string | null;
   claimed_date?: string | null;

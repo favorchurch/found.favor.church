@@ -7,6 +7,7 @@ interface PublicItem {
   name: string;
   item_code: string;
   category: string;
+  category_name?: { name: string } | null;
   location: string | null;
   date_found: string;
 }
@@ -16,15 +17,7 @@ interface PublicItemCardProps {
   className?: string;
 }
 
-const categoryLabels: Record<string, string> = {
-  cash_wallet: "Cash & Wallet",
-  clothing: "Clothing, Apparel & Accessories",
-  documents_books: "Documents, Notebooks & Books",
-  electronics: "Electronics & Gadget Accessories",
-  jewelry: "Jewelry",
-  tumblers_bottles: "Tumblers & Water Bottles",
-  others: "Others",
-};
+
 
 export function PublicItemCard({ item, className }: PublicItemCardProps) {
   return (
@@ -51,7 +44,7 @@ export function PublicItemCard({ item, className }: PublicItemCardProps) {
 
           <div>
             <span className="inline-flex items-center rounded-lg border border-border-main bg-surface px-2.5 py-1 text-[10px] font-medium text-text-muted">
-              {categoryLabels[item.category] || "Others"}
+              {item.category_name?.name || "Others"}
             </span>
           </div>
         </div>

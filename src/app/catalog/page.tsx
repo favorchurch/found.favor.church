@@ -27,7 +27,7 @@ export default async function CatalogPage({
 
   let baseQuery = supabase
     .from("found_items")
-    .select("*", { count: "exact" })
+    .select("*, category_name:found_item_categories(name)", { count: "exact" })
     .eq("is_public", true)
     .is("archived_at", null)
     .order("date_found", { ascending: false });
@@ -72,7 +72,7 @@ export default async function CatalogPage({
               <path d="M8 1a3 3 0 100 6A3 3 0 008 1zM4 4a4 4 0 118 0 4 4 0 01-8 0zm-2 9a6 6 0 1112 0H2z" />
             </svg>
           </div>
-          <span className="font-sans text-sm font-black tracking-widest text-white uppercase">
+          <span className="font-sans text-sm font-black tracking-normal text-white uppercase">
             Lost<span className="text-white/80">&Found</span>{" "}
             <span className="ml-2 text-white/50 font-medium lowercase tracking-normal">
               Catalog
