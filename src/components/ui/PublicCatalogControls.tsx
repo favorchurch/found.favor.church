@@ -33,6 +33,8 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { useQuery } from "@tanstack/react-query";
+import { createClient } from "@/utils/supabase/client";
 
 interface VenueRow {
   slug: string;
@@ -76,6 +78,18 @@ export function PublicCatalogControls({
   const [queryDraft, setQueryDraft] = useState(initialQuery);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement | null>(null);
+
+  const { data: dateCounts } = useQuery({
+    queryKey: ["public-catalog-item-counts"],
+    queryFn: async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase.rpc(
+        "get_public_catalog_item_counts_by_date",
+      );
+      if (error) throw error;
+      return data as { date_found: string; item_count: number }[];
+    },
+  });
 
   // Sync local draft when URL changes externally (e.g. browser back).
   useEffect(() => {
@@ -236,7 +250,7 @@ export function PublicCatalogControls({
             <Clock className="h-3.5 w-3.5" />
             This Sunday
           </button>
-          <div ref={popoverRef} className="relative inline-block">
+          <div ref={popoverRef} className="relative inline-block lg:hidden">
             <button
               type="button"
               onClick={() => setPopoverOpen((open) => !open)}
@@ -256,6 +270,7 @@ export function PublicCatalogControls({
                 <RangeCalendar
                   initialFrom={initialDateFrom}
                   initialTo={initialDateTo}
+                  dateCounts={dateCounts}
                   onApply={(from, to) => {
                     setRange(from, to);
                     setPopoverOpen(false);
@@ -442,14 +457,16 @@ function VenueChip({
   );
 }
 
-function RangeCalendar({
+export function RangeCalendar({
   initialFrom,
   initialTo,
+  dateCounts,
   onApply,
   onClear,
 }: {
   initialFrom: string;
   initialTo: string;
+  dateCounts?: { date_found: string; item_count: number }[];
   onApply: (from: string, to: string) => void;
   onClear: () => void;
 }) {
@@ -459,6 +476,21 @@ function RangeCalendar({
     if (initialFrom) return startOfMonth(parseISO(initialFrom));
     return startOfMonth(new Date());
   });
+
+  // Keep internal draft in sync with props if props change from outside
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDraftFrom(initialFrom);
+    setDraftTo(initialTo);
+  }, [initialFrom, initialTo]);
+
+  const countsMap = useMemo(() => {
+    const map = new Map<string, number>();
+    dateCounts?.forEach((item) => {
+      map.set(item.date_found, Number(item.item_count));
+    });
+    return map;
+  }, [dateCounts]);
 
   const days = useMemo(() => {
     const start = startOfWeek(startOfMonth(visibleMonth));
@@ -541,6 +573,9 @@ function RangeCalendar({
           const inRange = isInRange(day);
           const endpoint = isEndpoint(day);
           const inMonth = isSameMonth(day, visibleMonth);
+          const dateKey = format(day, "yyyy-MM-dd");
+          const hasItems = countsMap.get(dateKey);
+
           return (
             <button
               key={day.toISOString()}
@@ -555,9 +590,13 @@ function RangeCalendar({
                   !inRange &&
                   "hover:bg-surface-hover hover:text-text-main",
                 isSameDay(day, new Date()) && !endpoint && "font-bold",
+                hasItems && !endpoint && "text-brand font-bold",
               )}
             >
               {format(day, "d")}
+              {hasItems && !endpoint && (
+                <div className="absolute top-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-brand" />
+              )}
             </button>
           );
         })}

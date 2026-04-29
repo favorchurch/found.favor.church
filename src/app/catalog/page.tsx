@@ -6,6 +6,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Link from "next/link";
 import { PublicCatalogResults } from "@/components/ui/PublicCatalogResults";
 import { PublicCatalogControls } from "@/components/ui/PublicCatalogControls";
+import { CatalogSidebar } from "@/components/ui/CatalogSidebar";
 
 export const metadata: Metadata = {
   title: "Public Catalog | Lost & Found — Favor Church",
@@ -140,7 +141,7 @@ export default async function CatalogPage({
       </header>
 
       <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-7xl">
           <div className="mb-5 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
             <div className="max-w-2xl space-y-2">
               <p className="font-sans text-[10px] font-black uppercase tracking-widest text-brand">
@@ -160,31 +161,42 @@ export default async function CatalogPage({
             </div>
           </div>
 
-          <PublicCatalogControls
-            initialQuery={query}
-            initialDateFrom={dateFrom}
-            initialDateTo={dateTo}
-            venues={allVenues}
-            activeVenue={venueFilter}
-            statusFilter={statusFilter}
-          />
+          <div className="lg:grid lg:grid-cols-[320px_1fr] lg:items-start lg:gap-8">
+            <aside className="sticky top-20 hidden lg:block">
+              <CatalogSidebar
+                initialDateFrom={dateFrom}
+                initialDateTo={dateTo}
+              />
+            </aside>
 
-          <ErrorBoundary>
-            <PublicCatalogResults
-              idle={isIdle}
-              initialItems={items}
-              initialTotal={total}
-              venues={allVenues}
-              searchParams={{
-                q: query,
-                venue: venueFilter,
-                from: dateFrom,
-                to: dateTo,
-                page,
-                status: statusFilter,
-              }}
-            />
-          </ErrorBoundary>
+            <div>
+              <PublicCatalogControls
+                initialQuery={query}
+                initialDateFrom={dateFrom}
+                initialDateTo={dateTo}
+                venues={allVenues}
+                activeVenue={venueFilter}
+                statusFilter={statusFilter}
+              />
+
+              <ErrorBoundary>
+                <PublicCatalogResults
+                  idle={isIdle}
+                  initialItems={items}
+                  initialTotal={total}
+                  venues={allVenues}
+                  searchParams={{
+                    q: query,
+                    venue: venueFilter,
+                    from: dateFrom,
+                    to: dateTo,
+                    page,
+                    status: statusFilter,
+                  }}
+                />
+              </ErrorBoundary>
+            </div>
+          </div>
         </div>
       </main>
 
