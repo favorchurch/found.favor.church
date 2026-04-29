@@ -11,7 +11,7 @@ import { CatalogSidebar } from "@/components/ui/CatalogSidebar";
 export const metadata: Metadata = {
   title: "Public Catalog | Lost & Found — Favor Church",
   description:
-    "Browse items found at Favor Church. If you recognize an item, please visit the information desk.",
+    "Browse items found at Favor Church. If you recognize an item, please visit the info booth.",
 };
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -143,18 +143,44 @@ export default async function CatalogPage({
       <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
         <div className="mx-auto max-w-7xl">
           <div className="mb-5 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-            <div className="max-w-2xl space-y-2">
+            <div className="max-w-5xl space-y-4">
               <p className="font-sans text-[10px] font-black uppercase tracking-widest text-brand">
                 Favor Church Lost &amp; Found
               </p>
-              <h1 className="text-3xl font-black tracking-tight text-text-main sm:text-4xl">
-                Find your item
-              </h1>
-              <p className="text-sm leading-6 text-text-muted">
-                Search by item, place, or claim code. If something looks like
-                yours, show the code at the information desk so our team can
-                help confirm it.
-              </p>
+              <div className="space-y-3">
+                <h1 className="text-3xl font-black tracking-tight text-text-main sm:text-4xl">
+                  How to Search for Your Lost Item
+                </h1>
+                <div className="grid gap-3 text-sm leading-6 text-text-muted sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="rounded-2xl border border-border-main bg-white p-4 shadow-sm">
+                    <p className="font-sans text-[10px] font-black uppercase tracking-widest text-brand">
+                      1. Use Find
+                    </p>
+                    <p className="mt-1">
+                      Type what you lost in the search box, like cellphone,
+                      tumbler, umbrella, or wallet.
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-border-main bg-white p-4 shadow-sm">
+                    <p className="font-sans text-[10px] font-black uppercase tracking-widest text-brand">
+                      2. Check the Calendar
+                    </p>
+                    <p className="mt-1">
+                      Pick the month or day you remember to see items
+                      surrendered around that time.
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-border-main bg-white p-4 shadow-sm sm:col-span-2 lg:col-span-1">
+                    <p className="font-sans text-[10px] font-black uppercase tracking-widest text-brand">
+                      3. Show the Code
+                    </p>
+                    <p className="mt-1">
+                      If you find a possible match, show the claim code at the
+                      info booth so our team can help confirm it.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="hidden rounded-full border border-brand/20 bg-brand/5 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-brand md:block">
               Photos verified in person
@@ -201,25 +227,15 @@ export default async function CatalogPage({
       </main>
 
       <footer className="border-t border-brand-dim bg-brand-deep py-10 px-6">
-        <div className="mx-auto max-w-5xl space-y-6 text-center">
-          <div className="mx-auto max-w-3xl rounded-xl border border-white/15 bg-white/5 p-5 text-left">
-            <h2 className="font-sans text-[11px] font-black uppercase tracking-widest text-white/90">
-              Disclaimer on Unclaimed Lost &amp; Found Items
-            </h2>
-            <p className="mt-2 text-xs leading-relaxed text-white/80">
-              To keep items moving and avoid long-term storage, Lost and Found
-              disposal will happen every <strong>three (3) months</strong> or{" "}
-              <strong>nine (9) weeks</strong>. Make sure to check for your lost
-              item within three (3) months from the date it was lost.
-            </p>
-            <p className="mt-2 text-xs leading-relaxed text-white/80">
-              Any item left unclaimed after this period may be donated or
-              distributed as part of the volunteer prize pool.
-            </p>
-          </div>
-          <p className="font-sans text-xs font-black uppercase text-white tracking-normal">
+        <div className="mx-auto max-w-5xl space-y-2 text-center">
+          <p className="font-sans text-xs font-black uppercase text-white">
             &copy; {new Date().getFullYear()}&nbsp;Favor Church &bull; Lost
             &amp; Found
+          </p>
+          <p className="font-sans text-[10px] font-bold uppercase text-white/60">
+            <a href="https://maps.app.goo.gl/ZuaMg5TMSCpN4pRMA" target="_blank">
+              6F East Wing, Shangri-La Plaza, Mandaluyong City
+            </a>
           </p>
         </div>
       </footer>

@@ -120,7 +120,7 @@ git commit -m "perf: implement react-query for catalog results"
 **Files:**
 - Modify: `src/components/ui/PublicCatalogControls.tsx`
 
-- [ ] **Step 1: Move "This Sunday" and "Filter By Date" above search bar**
+- [ ] **Step 1: Move "Last Sunday" and "Filter By Date" above search bar**
 - [ ] **Step 2: Implement toggle behavior for search pills**
 - [ ] **Step 3: Center "Quick Search" in idle state (in PublicCatalogResults.tsx)**
 

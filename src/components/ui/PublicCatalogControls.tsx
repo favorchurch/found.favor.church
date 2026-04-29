@@ -35,6 +35,7 @@ import {
 import { cn } from "@/utils/cn";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/utils/supabase/client";
+import { selectDateRange } from "@/utils/dateRangeSelection";
 
 interface VenueRow {
   slug: string;
@@ -163,6 +164,9 @@ export function PublicCatalogControls({
 
   const dateRangeLabel = useMemo(() => {
     if (initialDateFrom && initialDateTo) {
+      if (initialDateFrom === initialDateTo) {
+        return format(parseISO(initialDateFrom), "MMM d, yyyy");
+      }
       return `${format(parseISO(initialDateFrom), "MMM d")} - ${format(parseISO(initialDateTo), "MMM d, yyyy")}`;
     }
     if (initialDateFrom) {
@@ -204,11 +208,6 @@ export function PublicCatalogControls({
     ? childrenByParent.get(expandedParent) || []
     : [];
 
-  const activeVenueName = useMemo(() => {
-    if (activeVenue === "all") return "";
-    return venues.find((v) => v.slug === activeVenue)?.name || activeVenue;
-  }, [activeVenue, venues]);
-
   const thisSunday = useMemo(
     () => format(startOfWeek(new Date()), "yyyy-MM-dd"),
     [],
@@ -228,29 +227,47 @@ export function PublicCatalogControls({
     }
   };
 
-  const applyThisSunday = () => {
-    setRange(thisSunday, thisSunday);
+  const applySearch = () => {
+    updateParams((next) => {
+      const query = queryDraft.trim();
+      if (query) {
+        next.set("q", query);
+      } else {
+        next.delete("q");
+      }
+    });
   };
 
-  const hasActiveFilters =
-    queryDraft.trim() ||
-    initialDateFrom ||
-    initialDateTo ||
-    activeVenue !== "all";
+  const applyThisSunday = () => {
+    if (initialDateFrom === thisSunday && initialDateTo === thisSunday) {
+      setRange("", "");
+    } else {
+      setRange(thisSunday, thisSunday);
+    }
+  };
+  const isThisSundayActive =
+    initialDateFrom === thisSunday && initialDateTo === thisSunday;
+  const showDisclaimer =
+    !queryDraft.trim() && !initialDateFrom && !initialDateTo;
 
   return (
     <div className="mb-8 rounded-3xl border border-border-main bg-surface p-4 shadow-sm sm:p-5">
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="relative flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={applyThisSunday}
-            className="inline-flex items-center gap-2 rounded-full border border-border-main bg-white px-4 py-2 text-[10px] font-sans font-bold uppercase tracking-widest text-text-muted transition-all hover:border-brand/40 hover:bg-brand/10 hover:text-brand"
+            className={cn(
+              "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[10px] font-sans font-bold uppercase tracking-widest transition-all hover:border-brand/40 hover:bg-brand/10 hover:text-brand",
+              isThisSundayActive
+                ? "border-brand/40 bg-brand/10 text-brand"
+                : "border-border-main bg-white text-text-muted",
+            )}
           >
             <Clock className="h-3.5 w-3.5" />
-            This Sunday
+            Last Sunday
           </button>
-          <div ref={popoverRef} className="relative inline-block lg:hidden">
+          <div ref={popoverRef} className="inline-block lg:hidden">
             <button
               type="button"
               onClick={() => setPopoverOpen((open) => !open)}
@@ -266,14 +283,19 @@ export function PublicCatalogControls({
             </button>
 
             {popoverOpen && (
-              <div className="absolute left-0 top-full z-40 mt-2 w-[320px] rounded-2xl border border-border-main bg-surface p-4 shadow-2xl">
+              <div
+                className="absolute left-1/2 top-full z-40 mt-2 max-w-[320px] -translate-x-1/2 rounded-2xl border border-border-main bg-surface p-4 shadow-2xl"
+                style={{ width: "calc(100vw - 2rem)" }}
+              >
                 <RangeCalendar
                   initialFrom={initialDateFrom}
                   initialTo={initialDateTo}
                   dateCounts={dateCounts}
-                  onApply={(from, to) => {
+                  onChange={(from, to, completedRange) => {
                     setRange(from, to);
-                    setPopoverOpen(false);
+                    if (completedRange) {
+                      setPopoverOpen(false);
+                    }
                   }}
                   onClear={() => {
                     setRange("", "");
@@ -285,26 +307,41 @@ export function PublicCatalogControls({
           </div>
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-text-dim" />
-          <input
-            type="search"
-            value={queryDraft}
-            onChange={(e) => setQueryDraft(e.target.value)}
-            placeholder="Search by item, place, or claim code"
-            className="w-full rounded-2xl border border-border-main bg-white px-12 py-4 text-base font-medium text-text-main shadow-sm transition-colors placeholder:text-text-dim focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/10"
-          />
-          {queryDraft && (
-            <button
-              type="button"
-              onClick={() => setQueryDraft("")}
-              aria-label="Clear search"
-              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-text-dim hover:bg-surface-hover hover:text-text-main"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
+        <form
+          className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"
+          onSubmit={(event) => {
+            event.preventDefault();
+            applySearch();
+          }}
+        >
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-text-dim" />
+            <input
+              type="search"
+              value={queryDraft}
+              onChange={(e) => setQueryDraft(e.target.value)}
+              placeholder="Search by item, place, or claim code"
+              className="w-full rounded-2xl border border-border-main bg-white px-12 py-4 text-base font-medium text-text-main shadow-sm transition-colors placeholder:text-text-dim focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/10"
+            />
+            {queryDraft && (
+              <button
+                type="button"
+                onClick={() => setQueryDraft("")}
+                aria-label="Clear search"
+                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-text-dim hover:bg-surface-hover hover:text-text-main"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <button
+            type="submit"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-4 font-sans text-[11px] font-black uppercase tracking-widest text-white shadow-sm transition-all hover:bg-brand-dim focus:outline-none focus:ring-4 focus:ring-brand/20"
+          >
+            <Search className="h-4 w-4" />
+            Find
+          </button>
+        </form>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex flex-wrap items-center gap-2">
@@ -324,29 +361,6 @@ export function PublicCatalogControls({
               </button>
             ))}
           </div>
-
-          {hasActiveFilters && (
-            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-              {queryDraft.trim() && (
-                <FilterPill
-                  label={`Search: ${queryDraft.trim()}`}
-                  onClear={() => setQueryDraft("")}
-                />
-              )}
-              {(initialDateFrom || initialDateTo) && (
-                <FilterPill
-                  label={dateRangeLabel}
-                  onClear={() => setRange("", "")}
-                />
-              )}
-              {activeVenue !== "all" && (
-                <FilterPill
-                  label={activeVenueName}
-                  onClear={() => setVenue("all")}
-                />
-              )}
-            </div>
-          )}
         </div>
 
         {statusFilter !== "unclaimed" && (
@@ -398,34 +412,38 @@ export function PublicCatalogControls({
               ))}
             </div>
           )}
-        </div>
 
-        <p className="text-xs leading-5 text-text-dim">
-          Our team may ask a few questions or use a private photo to confirm
-          it is yours.
-        </p>
+          <div
+            className={cn(
+              "grid transition-[grid-template-rows,opacity,margin-top] duration-300 ease-out motion-reduce:transition-none",
+              showDisclaimer
+                ? "mt-4 grid-rows-[1fr] opacity-100"
+                : "mt-0 grid-rows-[0fr] opacity-0",
+            )}
+            aria-hidden={!showDisclaimer}
+          >
+            <div className="overflow-hidden">
+              <div className="rounded-2xl border border-brand/15 bg-brand/5 p-4">
+                <h2 className="font-sans text-[10px] font-black uppercase tracking-widest text-brand">
+                  Disclaimer on Unclaimed Lost &amp; Found Items
+                </h2>
+                <p className="mt-2 text-xs leading-5 text-text-muted">
+                  To keep items moving and avoid long-term storage, Lost and
+                  Found disposal will happen every{" "}
+                  <strong>three (3) months</strong> or{" "}
+                  <strong>nine (9) weeks</strong>. Make sure to check for your
+                  lost item within three (3) months from the date it was lost.
+                </p>
+                <p className="mt-2 text-xs leading-5 text-text-muted">
+                  Any item left unclaimed after this period may be donated or
+                  distributed as part of the volunteer prize pool.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  );
-}
-
-function FilterPill({
-  label,
-  onClear,
-}: {
-  label: string;
-  onClear: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClear}
-      className="inline-flex max-w-full items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-[10px] font-sans font-bold uppercase tracking-widest text-brand transition-colors hover:bg-brand/15"
-      aria-label={`Clear ${label}`}
-    >
-      <span className="truncate">{label}</span>
-      <X className="h-3 w-3 shrink-0" />
-    </button>
   );
 }
 
@@ -461,17 +479,19 @@ export function RangeCalendar({
   initialFrom,
   initialTo,
   dateCounts,
-  onApply,
+  onChange,
   onClear,
 }: {
   initialFrom: string;
   initialTo: string;
   dateCounts?: { date_found: string; item_count: number }[];
-  onApply: (from: string, to: string) => void;
+  onChange: (from: string, to: string, completedRange: boolean) => void;
   onClear: () => void;
 }) {
   const [draftFrom, setDraftFrom] = useState<string>(initialFrom);
-  const [draftTo, setDraftTo] = useState<string>(initialTo);
+  const [draftTo, setDraftTo] = useState<string>(
+    initialFrom === initialTo ? "" : initialTo,
+  );
   const [visibleMonth, setVisibleMonth] = useState<Date>(() => {
     if (initialFrom) return startOfMonth(parseISO(initialFrom));
     return startOfMonth(new Date());
@@ -481,7 +501,7 @@ export function RangeCalendar({
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setDraftFrom(initialFrom);
-    setDraftTo(initialTo);
+    setDraftTo(initialFrom === initialTo ? "" : initialTo);
   }, [initialFrom, initialTo]);
 
   const countsMap = useMemo(() => {
@@ -506,21 +526,14 @@ export function RangeCalendar({
 
   const handleDayClick = (day: Date) => {
     const dateKey = format(day, "yyyy-MM-dd");
-    if (!draftFrom || (draftFrom && draftTo)) {
-      // Start a new selection.
-      setDraftFrom(dateKey);
-      setDraftTo("");
-      return;
-    }
-    // We have a from but no to.
-    const fromDate = parseISO(draftFrom);
-    if (isBefore(day, fromDate)) {
-      // Clicked earlier → reset start.
-      setDraftFrom(dateKey);
-      setDraftTo("");
-    } else {
-      setDraftTo(dateKey);
-    }
+    const selection = selectDateRange({ draftFrom, draftTo }, dateKey);
+    setDraftFrom(selection.draftFrom);
+    setDraftTo(selection.draftTo);
+    onChange(
+      selection.filterFrom,
+      selection.filterTo,
+      selection.completedRange,
+    );
   };
 
   const isInRange = (day: Date): boolean => {
@@ -585,16 +598,19 @@ export function RangeCalendar({
                 "relative flex aspect-square items-center justify-center rounded-lg text-xs transition-all",
                 inMonth ? "text-text-main" : "text-text-dim/40",
                 !endpoint && inRange && "bg-brand/10 text-brand",
-                endpoint && "bg-brand text-white font-bold",
+                endpoint &&
+                  (hasItems
+                    ? "bg-brand/10 text-brand font-black ring-1 ring-brand/40"
+                    : "bg-brand text-white font-bold"),
                 !endpoint &&
                   !inRange &&
                   "hover:bg-surface-hover hover:text-text-main",
                 isSameDay(day, new Date()) && !endpoint && "font-bold",
-                hasItems && !endpoint && "text-brand font-bold",
+                hasItems && "text-brand font-black",
               )}
             >
               {format(day, "d")}
-              {hasItems && !endpoint && (
+              {hasItems && (
                 <div className="absolute top-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-brand" />
               )}
             </button>
@@ -602,21 +618,17 @@ export function RangeCalendar({
         })}
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-2 border-t border-border-main pt-3">
+      <div className="mt-4 flex items-center justify-end gap-2 border-t border-border-main pt-3">
         <button
           type="button"
-          onClick={onClear}
+          onClick={() => {
+            setDraftFrom("");
+            setDraftTo("");
+            onClear();
+          }}
           className="text-[10px] font-sans font-bold uppercase tracking-widest text-text-dim hover:text-text-main"
         >
           Clear
-        </button>
-        <button
-          type="button"
-          onClick={() => onApply(draftFrom, draftTo || draftFrom)}
-          disabled={!draftFrom}
-          className="rounded-lg bg-brand px-4 py-2 text-[10px] font-sans font-bold uppercase tracking-widest text-white transition-colors hover:bg-brand-dim disabled:opacity-40"
-        >
-          Apply
         </button>
       </div>
     </div>

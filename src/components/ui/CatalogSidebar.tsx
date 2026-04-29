@@ -54,7 +54,7 @@ export function CatalogSidebar({
         initialFrom={initialDateFrom}
         initialTo={initialDateTo}
         dateCounts={dateCounts}
-        onApply={updateParams}
+        onChange={updateParams}
         onClear={() => updateParams("", "")}
       />
     </div>

@@ -1,6 +1,8 @@
-import { Calendar, MapPin, ShieldCheck } from "lucide-react";
+import { Calendar, MapPin } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/utils/cn";
 import { format } from "date-fns";
+import { getPublicItemLocation } from "@/utils/publicCatalogItem";
 
 interface PublicItem {
   id: string;
@@ -25,16 +27,14 @@ interface PublicItemCardProps {
 }
 
 export function PublicItemCard({ item, className }: PublicItemCardProps) {
-  const parentName = item.venue_name?.parent?.name;
-  const venueName = item.venue_name?.name;
-  const venuePath =
-    parentName && venueName ? `${parentName} / ${venueName}` : venueName || null;
-  const fullLocation = [venuePath, item.location].filter(Boolean).join(", ");
+  const fullLocation = getPublicItemLocation(item);
 
   return (
-    <div
+    <Link
+      href={`/catalog/items/${item.id}`}
+      scroll={false}
       className={cn(
-        "group relative flex min-h-[230px] flex-col overflow-hidden rounded-2xl border border-border-main bg-white p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-lg hover:shadow-brand/5",
+        "group relative flex min-h-[230px] flex-col overflow-hidden rounded-2xl border border-border-main bg-white p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-lg hover:shadow-brand/5 focus:outline-none focus:ring-2 focus:ring-brand/30 focus:ring-offset-2",
         className,
       )}
     >
@@ -47,14 +47,6 @@ export function PublicItemCard({ item, className }: PublicItemCardProps) {
             <h3 className="mt-3 line-clamp-2 text-lg font-black leading-tight text-text-main">
               {item.name}
             </h3>
-          </div>
-          <div className="shrink-0 rounded-xl bg-brand/10 px-3 py-2 text-right">
-            <span className="block text-[9px] font-sans font-black uppercase tracking-widest text-brand/80">
-              Code
-            </span>
-            <span className="block font-sans text-sm font-black tracking-wide text-brand">
-              {item.item_code}
-            </span>
           </div>
         </div>
 
@@ -80,15 +72,16 @@ export function PublicItemCard({ item, className }: PublicItemCardProps) {
             </div>
           </div>
 
-          <div className="flex items-start gap-2 rounded-xl border border-brand/20 bg-brand/5 p-3 text-xs leading-5 text-text-muted">
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
-            <span>
-              Show this code at the information desk. Our team may ask a few
-              questions to confirm it is yours.
+          <div className="rounded-xl bg-brand/10 px-3 py-2">
+            <span className="block text-[9px] font-sans font-black uppercase tracking-widest text-brand/80">
+              Code
+            </span>
+            <span className="block font-sans text-sm font-black tracking-wide text-brand">
+              {item.item_code}
             </span>
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

@@ -1,4 +1,6 @@
-import { CalendarDays, Loader2, Search, Sparkles, X } from "lucide-react";
+"use client";
+
+import { Loader2, Search, Sparkles, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { PublicItemCard } from "@/components/ui/PublicItemCard";
 import { useQuery } from "@tanstack/react-query";
@@ -161,17 +163,6 @@ export function PublicCatalogResults({
     });
   };
 
-  const clearDate = () => {
-    const next = new URLSearchParams(searchParams.toString());
-    next.delete("from");
-    next.delete("to");
-    next.delete("page");
-    const queryString = next.toString();
-    router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
-      scroll: false,
-    });
-  };
-
   if (idle) {
     return (
       <div className="rounded-3xl border border-dashed border-border-main bg-white px-5 py-12 text-center">
@@ -182,9 +173,8 @@ export function PublicCatalogResults({
           Start with what you remember
         </h3>
         <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-text-muted">
-          Search a common item, choose the date you lost it, or narrow by
-          venue. Photos stay private so our team can confirm ownership in
-          person.
+          Search a common item, choose the date you lost it, or narrow by venue.
+          Photos stay private so our team can confirm ownership in person.
         </p>
         <div className="mx-auto mt-5 flex max-w-xl flex-wrap justify-center gap-2">
           {SUGGESTED_SEARCHES.map((term) => (
@@ -244,16 +234,6 @@ export function PublicCatalogResults({
               Clear venue
             </button>
           )}
-          {(searchParams.get("from") || searchParams.get("to")) && (
-            <button
-              type="button"
-              onClick={clearDate}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border-main bg-surface px-3 py-2 text-[10px] font-sans font-bold uppercase tracking-widest text-text-muted transition-all hover:border-brand/40 hover:bg-brand/10 hover:text-brand"
-            >
-              <CalendarDays className="h-3 w-3" />
-              Clear date
-            </button>
-          )}
           <button
             type="button"
             onClick={clearFilters}
@@ -271,11 +251,19 @@ export function PublicCatalogResults({
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex items-center gap-3">
           <div>
-            <h2 className="text-sm font-bold text-text-main">
-              {total === 1 ? "1 possible match" : `${total} possible matches`}
+            <h2 className="text-md font-bold text-brand">
+              {total === 1 ? "1 search result" : `${total} search results`}
             </h2>
             <p className="text-xs text-text-dim">
-              Show the claim reference at the information desk.
+              Show the claim reference at the info booth or email us at{" "}
+              <a
+                href="mailto:info@favor.church"
+                target="_blank"
+                className="text-brand"
+              >
+                info@favor.church
+              </a>
+              .
             </p>
           </div>
           {isFetching && (
