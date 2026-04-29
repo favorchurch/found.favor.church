@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Trash2, Save, Camera, Globe, Lock } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { Trash2, Save, Camera, Globe, Lock, ExternalLink, X } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useRouter } from "next/navigation";
 import { type ItemStatus } from "@/components/ui/StatusBadge";
@@ -49,18 +49,104 @@ export function ItemForm({
 }: ItemFormProps) {
   const router = useRouter();
   const supabase = createClient();
+  const fallbackCategory =
+    categories.find((category) => category.slug === "others")?.slug ??
+    categories[0]?.slug ??
+    "others";
   const [loading, setLoading] = useState(false);
   const [compressing, setCompressing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [status, setStatus] = useState<ItemStatus>(
-    initialData?.status || "unclaimed",
+    initialData?.status ?? "unclaimed",
   );
+  const [title, setTitle] = useState(initialData?.name ?? "");
+  const [selectedCategory, setSelectedCategory] = useState(
+    initialData?.category ?? fallbackCategory,
+  );
+  const [matchedCategorySlug, setMatchedCategorySlug] = useState<string | null>(
+    null,
+  );
+  const categoryManuallySelected = useRef(false);
   const [removedPhoto, setRemovedPhoto] = useState(false);
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(
     getPhotoUrl(initialData?.photo_path ?? null),
   );
+
+  const categoryBySlug = useMemo(
+    () => new Map(categories.map((category) => [category.slug, category])),
+    [categories],
+  );
+
+  const normalizeSearchText = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+
+  const getCategorySearchCandidates = (category: {
+    slug: string;
+    name: string;
+  }) => {
+    const candidates = [category.name, category.slug]
+      .map(normalizeSearchText)
+      .filter(Boolean);
+
+    return Array.from(
+      new Set(
+        candidates.flatMap((candidate) => [
+          candidate,
+          candidate.replace(/\b([a-z0-9]{4,})s\b/g, "$1"),
+        ]),
+      ),
+    );
+  };
+
+  const getMatchingCategory = (itemTitle: string) => {
+    const normalizedTitle = ` ${normalizeSearchText(itemTitle)} `;
+    if (!normalizedTitle.trim()) return null;
+
+    const matches = categories.filter((category) => {
+      return getCategorySearchCandidates(category).some((candidate) =>
+        normalizedTitle.includes(` ${candidate} `),
+      );
+    });
+
+    return matches.length === 1 ? matches[0] : null;
+  };
+
+  const submittedCategory =
+    categories.length === 0
+      ? "others"
+      : categoryBySlug.has(selectedCategory)
+        ? selectedCategory
+        : fallbackCategory;
+
+  const handleTitleChange = (nextTitle: string) => {
+    setTitle(nextTitle);
+    if (categoryManuallySelected.current) return;
+
+    const match = getMatchingCategory(nextTitle);
+    if (!match) {
+      setMatchedCategorySlug(null);
+      return;
+    }
+
+    setSelectedCategory(match.slug);
+    setMatchedCategorySlug(match.slug);
+  };
+
+  const handleSuccessfulMutation = () => {
+    router.replace("/admin/dashboard");
+    router.refresh();
+  };
+
+  const handleCategorySelect = (slug: string) => {
+    categoryManuallySelected.current = true;
+    setSelectedCategory(slug);
+    setMatchedCategorySlug(null);
+  };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -71,8 +157,8 @@ export function ItemForm({
     const date_found = formData.get("date_found") as string;
     const location = formData.get("location") as string;
     const venue = formData.get("venue") as string;
-    const currentStatus = formData.get("status") as ItemStatus;
-    const category = formData.get("category") as string;
+    const currentStatus = (formData.get("status") as ItemStatus) ?? "unclaimed";
+    const category = (formData.get("category") as string) || "others";
     const is_public = formData.get("is_public") === "on";
 
     const claimed_date = formData.get("claimed_date") as string | null;
@@ -126,7 +212,7 @@ export function ItemForm({
         };
 
         await upsertItem(itemData);
-        router.push("/admin/dashboard");
+        handleSuccessfulMutation();
       } finally {
         setLoading(false);
       }
@@ -146,7 +232,7 @@ export function ItemForm({
     const promise = async () => {
       try {
         await deleteItem(initialData.id, initialData.photo_path);
-        router.push("/admin/dashboard");
+        handleSuccessfulMutation();
       } finally {
         setLoading(false);
         setShowDeleteModal(false);
@@ -193,39 +279,17 @@ export function ItemForm({
     }
   };
 
+  const matchedCategory = matchedCategorySlug
+    ? categoryBySlug.get(matchedCategorySlug)
+    : null;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
+      <input type="hidden" name="category" value={submittedCategory} />
+      <input type="hidden" name="status" value={status} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left Column: Inputs */}
         <div className="space-y-6">
-          {/* Privacy Toggle — top of form */}
-          <div className="pb-4 border-b border-border-main">
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  name="is_public"
-                  defaultChecked={initialData?.is_public || false}
-                  className="sr-only peer"
-                />
-                <div className="w-10 h-5 bg-border-main rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-text-main">
-                  Publicly listed
-                </span>
-                {initialData?.is_public ? (
-                  <Globe className="h-3 w-3 text-brand" />
-                ) : (
-                  <Lock className="h-3 w-3 text-text-dim" />
-                )}
-              </div>
-            </label>
-            <p className="mt-1 text-[10px] text-text-dim uppercase tracking-tighter ml-13">
-              If enabled, this item will appear in the public catalog.
-            </p>
-          </div>
-
           {initialData?.created_by_email && (
             <div className="p-3 bg-surface-active/50 rounded-lg border border-border-main flex items-center justify-between">
               <span className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
@@ -244,31 +308,78 @@ export function ItemForm({
             <input
               required
               name="name"
-              defaultValue={initialData?.name ?? ""}
+              value={title}
+              onChange={(event) => handleTitleChange(event.target.value)}
               placeholder="e.g. Black Umbrella"
               className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm text-text-main focus:border-brand focus:outline-none transition-colors"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
-              Category *
-            </label>
-            <select
-              required
-              name="category"
-              defaultValue={initialData?.category ?? "others"}
-              className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm font-medium focus:border-brand focus:outline-none transition-colors"
-            >
-              {categories.map((cat) => (
-                <option key={cat.slug} value={cat.slug}>
-                  {cat.name}
-                </option>
-              ))}
-              {categories.length === 0 && (
-                <option value="others">Others</option>
+            <div className="flex items-center justify-between gap-4">
+              <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
+                Category *
+              </label>
+              <a
+                href="/admin/settings"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-[10px] font-sans font-bold uppercase tracking-widest text-brand hover:text-brand-dim focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 rounded"
+              >
+                Edit categories
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+            <div className="flex flex-wrap gap-2" role="listbox" aria-label="Category">
+              {categories.length > 0 ? (
+                categories.map((category) => {
+                  const isSelected = submittedCategory === category.slug;
+                  return (
+                    <button
+                      key={category.slug}
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => handleCategorySelect(category.slug)}
+                      className={cn(
+                        "rounded-full border px-3 py-1.5 text-xs font-sans font-bold uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
+                        isSelected
+                          ? "border-brand bg-brand text-white shadow-sm shadow-brand/20"
+                          : "border-border-hover bg-bg text-text-dim hover:border-brand/50 hover:text-text-main",
+                      )}
+                    >
+                      {category.name}
+                    </button>
+                  );
+                })
+              ) : (
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected="true"
+                  className="rounded-full border border-brand bg-brand px-3 py-1.5 text-xs font-sans font-bold uppercase tracking-widest text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+                >
+                  Others
+                </button>
               )}
-            </select>
+            </div>
+            {matchedCategory && (
+              <div className="flex items-center gap-2 text-[11px] text-text-dim">
+                <span>Matched from &quot;{matchedCategory.name}&quot;</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    categoryManuallySelected.current = true;
+                    setSelectedCategory(fallbackCategory);
+                    setMatchedCategorySlug(null);
+                  }}
+                  className="inline-flex items-center gap-1 rounded text-[10px] font-sans font-bold uppercase tracking-widest text-brand hover:text-brand-dim focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+                >
+                  <X className="h-3 w-3" />
+                  Clear
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -282,53 +393,56 @@ export function ItemForm({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
-              Description
-            </label>
-            <textarea
-              name="description"
-              defaultValue={initialData?.description ?? ""}
-              placeholder="Features, color, brand..."
-              rows={3}
-              className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm text-text-main focus:border-brand focus:outline-none transition-colors resize-none"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
-                Date Found *
-              </label>
-              <input
-                required
-                type="date"
-                name="date_found"
-                defaultValue={
-                  initialData?.date_found ??
-                  new Date().toISOString().split("T")[0]
-                }
-                className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm text-text-main focus:border-brand focus:outline-none transition-colors"
-              />
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
                 Status
               </label>
-              <select
-                name="status"
-                value={status}
-                onChange={(e) => setStatus(e.target.value as ItemStatus)}
-                className={cn(
-                  "w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm font-medium focus:border-brand focus:outline-none transition-colors",
-                  status === "unclaimed" && "text-yellow-500",
-                  status === "claimed" && "text-emerald-500",
-                  status === "disposed" && "text-red-500",
+              <div className="grid grid-cols-3 rounded-lg border border-border-hover bg-bg p-1">
+                {(["unclaimed", "claimed", "disposed"] as const).map(
+                  (statusOption) => (
+                    <button
+                      key={statusOption}
+                      type="button"
+                      onClick={() => setStatus(statusOption)}
+                      className={cn(
+                        "rounded-md px-2 py-2 text-[10px] font-sans font-bold uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
+                        status === statusOption
+                          ? "bg-surface-active text-text-main shadow-sm"
+                          : "text-text-dim hover:text-text-main",
+                        status === statusOption &&
+                          statusOption === "unclaimed" &&
+                          "text-yellow-500",
+                        status === statusOption &&
+                          statusOption === "claimed" &&
+                          "text-emerald-500",
+                        status === statusOption &&
+                          statusOption === "disposed" &&
+                          "text-red-500",
+                      )}
+                    >
+                      {statusOption}
+                    </button>
+                  ),
                 )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
+                Venue
+              </label>
+              <select
+                name="venue"
+                defaultValue={initialData?.venue ?? ""}
+                className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm font-medium focus:border-brand focus:outline-none transition-colors"
               >
-                <option value="unclaimed">Unclaimed</option>
-                <option value="claimed">Claimed</option>
-                <option value="disposed">Disposed</option>
+                <option value="">Unassigned</option>
+                {venues.map((venue) => (
+                  <option key={venue.slug} value={venue.slug}>
+                    {venue.name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -408,24 +522,6 @@ export function ItemForm({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
-                Venue
-              </label>
-              <select
-                name="venue"
-                defaultValue={initialData?.venue ?? ""}
-                className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm font-medium focus:border-brand focus:outline-none transition-colors"
-              >
-                <option value="">Unassigned</option>
-                {venues.map((venue) => (
-                  <option key={venue.slug} value={venue.slug}>
-                    {venue.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
                 Location Detail
               </label>
               <input
@@ -435,8 +531,60 @@ export function ItemForm({
                 className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm text-text-main focus:border-brand focus:outline-none transition-colors"
               />
             </div>
+
+            <div className="space-y-2">
+              <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
+                Date Found *
+              </label>
+              <input
+                required
+                type="date"
+                name="date_found"
+                defaultValue={
+                  initialData?.date_found ??
+                  new Date().toISOString().split("T")[0]
+                }
+                className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm text-text-main focus:border-brand focus:outline-none transition-colors"
+              />
+            </div>
           </div>
 
+          <div className="space-y-2">
+            <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
+              Description
+            </label>
+            <textarea
+              name="description"
+              defaultValue={initialData?.description ?? ""}
+              placeholder="Features, color, brand..."
+              rows={3}
+              className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm text-text-main focus:border-brand focus:outline-none transition-colors resize-none"
+            />
+          </div>
+
+          <div className="pt-2">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  name="is_public"
+                  defaultChecked={initialData?.is_public || false}
+                  className="sr-only peer"
+                />
+                <div className="w-10 h-5 bg-border-main rounded-full peer peer-focus-visible:ring-2 peer-focus-visible:ring-brand/40 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-text-main">
+                  Publicly listed
+                </span>
+                {initialData?.is_public ? (
+                  <Globe className="h-3 w-3 text-brand" />
+                ) : (
+                  <Lock className="h-3 w-3 text-text-dim" />
+                )}
+              </div>
+            </label>
+          </div>
         </div>
 
         {/* Right Column: Photo */}
@@ -510,7 +658,7 @@ export function ItemForm({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-4 pt-6 border-t border-border-main">
+      <div className="sticky bottom-0 z-10 -mx-1 flex items-center justify-between gap-4 border-t border-border-main bg-surface/95 px-1 py-4 backdrop-blur">
         {initialData?.id ? (
           <div className="flex flex-col gap-1">
             <button
