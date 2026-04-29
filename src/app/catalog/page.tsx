@@ -140,17 +140,25 @@ export default async function CatalogPage({
         </div>
       </header>
 
-      <main className="flex-1 px-6 py-8">
+      <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
         <div className="mx-auto max-w-5xl">
-          <div className="mb-6 max-w-2xl space-y-2">
-            <h1 className="text-2xl font-bold tracking-tight text-brand">
-              Public Catalog
-            </h1>
-            <p className="text-sm text-text-muted">
-              Browse items found at Favor Church. If you recognize an item,
-              please visit the information desk on Sunday or contact our office
-              during the week.
-            </p>
+          <div className="mb-5 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+            <div className="max-w-2xl space-y-2">
+              <p className="font-sans text-[10px] font-black uppercase tracking-widest text-brand">
+                Favor Church Lost &amp; Found
+              </p>
+              <h1 className="text-3xl font-black tracking-tight text-text-main sm:text-4xl">
+                Find your item
+              </h1>
+              <p className="text-sm leading-6 text-text-muted">
+                Search by item, place, or claim code. If something looks like
+                yours, show the code at the information desk so our team can
+                help confirm it.
+              </p>
+            </div>
+            <div className="hidden rounded-full border border-brand/20 bg-brand/5 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-brand md:block">
+              Photos verified in person
+            </div>
           </div>
 
           <PublicCatalogControls
@@ -163,7 +171,7 @@ export default async function CatalogPage({
           />
 
           <ErrorBoundary>
-            <PublicCatalogResults idle={isIdle} items={items} />
+            <PublicCatalogResults idle={isIdle} items={items} total={total} />
           </ErrorBoundary>
 
           {!isIdle && <Pagination total={total} />}
@@ -207,6 +215,7 @@ interface VenueRow {
 interface PublicCatalogItem {
   id: string;
   name: string;
+  description: string | null;
   item_code: string;
   category: string;
   category_name?: { name: string } | null;

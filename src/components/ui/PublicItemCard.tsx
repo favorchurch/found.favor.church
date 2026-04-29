@@ -1,10 +1,11 @@
-import { MapPin, Calendar } from "lucide-react";
+import { Calendar, MapPin, ShieldCheck } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { format } from "date-fns";
 
 interface PublicItem {
   id: string;
   name: string;
+  description: string | null;
   item_code: string;
   category: string;
   category_name?: { name: string } | null;
@@ -23,60 +24,68 @@ interface PublicItemCardProps {
   className?: string;
 }
 
-
-
 export function PublicItemCard({ item, className }: PublicItemCardProps) {
+  const parentName = item.venue_name?.parent?.name;
+  const venueName = item.venue_name?.name;
+  const venuePath =
+    parentName && venueName ? `${parentName} / ${venueName}` : venueName || null;
+  const fullLocation = [venuePath, item.location].filter(Boolean).join(", ");
+
   return (
     <div
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-xl border border-border-main transition-all duration-300 hover:border-border-hover/80 bg-surface/50",
-        className
+        "group relative flex min-h-[230px] flex-col overflow-hidden rounded-2xl border border-border-main bg-white p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-lg hover:shadow-brand/5",
+        className,
       )}
     >
-      <div className="flex flex-col p-4 flex-1">
-        <h3 className="line-clamp-1 text-sm font-semibold text-text-main opacity-90 pr-2">
-          {item.name}
-        </h3>
-
-        <div className="mt-3 flex flex-col gap-2">
-          <div>
-            <span className="text-[10px] font-sans uppercase tracking-widest text-text-dim block mb-1">
-              Claim Reference
-            </span>
-            <span className="inline-flex items-center rounded-lg bg-surface-active px-2.5 py-1 font-sans text-xs font-bold tracking-wider text-brand">
-              {item.item_code}
-            </span>
-          </div>
-
-          <div>
-            <span className="inline-flex items-center rounded-lg border border-border-main bg-surface px-2.5 py-1 text-[10px] font-medium text-text-muted">
+      <div className="flex flex-1 flex-col">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <span className="inline-flex items-center rounded-full border border-border-main bg-surface px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-text-muted">
               {item.category_name?.name || "Others"}
+            </span>
+            <h3 className="mt-3 line-clamp-2 text-lg font-black leading-tight text-text-main">
+              {item.name}
+            </h3>
+          </div>
+          <div className="shrink-0 rounded-xl bg-brand/10 px-3 py-2 text-right">
+            <span className="block text-[9px] font-sans font-black uppercase tracking-widest text-brand/80">
+              Code
+            </span>
+            <span className="block font-sans text-sm font-black tracking-wide text-brand">
+              {item.item_code}
             </span>
           </div>
         </div>
 
-        <div className="mt-4 flex flex-row items-center justify-between gap-2 border-t border-border-main/50 pt-3 text-[10px] text-text-dim uppercase tracking-tight font-medium">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <MapPin className="h-3 w-3 shrink-0 opacity-60" />
-            {(() => {
-              const parentName = item.venue_name?.parent?.name;
-              const venueName = item.venue_name?.name;
-              const venuePath = parentName && venueName
-                ? `${parentName} → ${venueName}`
-                : venueName || null;
-              const fullLocation = [venuePath, item.location]
-                .filter(Boolean)
-                .join(", ");
-              return fullLocation ? (
+        {item.description && (
+          <p className="mt-3 line-clamp-3 text-sm leading-6 text-text-muted">
+            {item.description}
+          </p>
+        )}
+
+        <div className="mt-auto space-y-3 pt-5">
+          <div className="grid gap-2 text-[11px] font-medium uppercase tracking-tight text-text-dim">
+            <div className="flex min-w-0 items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5 shrink-0 opacity-60" />
+              <span>{format(new Date(item.date_found), "MMM d, yyyy")}</span>
+            </div>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <MapPin className="h-3 w-3 shrink-0 opacity-60" />
+              {fullLocation ? (
                 <span className="truncate">{fullLocation}</span>
               ) : (
                 <span className="italic opacity-50">No location</span>
-              );
-            })()}
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0 opacity-80">
-            <Calendar className="h-3 w-3 opacity-60" />
-            <span>{format(new Date(item.date_found), "MMM d, yyyy")}</span>
+
+          <div className="flex items-start gap-2 rounded-xl border border-brand/20 bg-brand/5 p-3 text-xs leading-5 text-text-muted">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+            <span>
+              Show this code at the information desk. Our team may ask a few
+              questions to confirm it is yours.
+            </span>
           </div>
         </div>
       </div>

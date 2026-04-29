@@ -27,6 +27,8 @@ import {
   Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
+  Clock,
+  MapPin,
   Search,
   X,
 } from "lucide-react";
@@ -49,6 +51,14 @@ interface PublicCatalogControlsProps {
 }
 
 const SEARCH_DEBOUNCE_MS = 300;
+const SUGGESTED_SEARCHES = [
+  "Cellphone",
+  "Tumbler",
+  "Umbrella",
+  "Wallet",
+  "Keys",
+  "Jacket",
+];
 
 export function PublicCatalogControls({
   initialQuery,
@@ -139,7 +149,7 @@ export function PublicCatalogControls({
 
   const dateRangeLabel = useMemo(() => {
     if (initialDateFrom && initialDateTo) {
-      return `${format(parseISO(initialDateFrom), "MMM d")} – ${format(parseISO(initialDateTo), "MMM d, yyyy")}`;
+      return `${format(parseISO(initialDateFrom), "MMM d")} - ${format(parseISO(initialDateTo), "MMM d, yyyy")}`;
     }
     if (initialDateFrom) {
       return `From ${format(parseISO(initialDateFrom), "MMM d, yyyy")}`;
@@ -180,122 +190,146 @@ export function PublicCatalogControls({
     ? childrenByParent.get(expandedParent) || []
     : [];
 
-  return (
-    <div className="mb-8 space-y-5">
-      {/* Instructional callout */}
-      <div className="rounded-2xl border border-brand/20 bg-brand/5 p-5">
-        <h2 className="text-xs font-sans font-black uppercase tracking-widest text-brand">
-          How to Search for Your Lost Item
-        </h2>
-        <p className="mt-2 text-xs text-text-muted">
-          There are two ways to look for your item:
-        </p>
-        <ol className="mt-3 space-y-2 text-xs text-text-muted">
-          <li>
-            <span className="font-bold text-text-main">
-              1. Use the search box.
-            </span>{" "}
-            Type the item you lost.{" "}
-            <span className="italic text-text-dim">
-              Example: cellphone, tumbler, umbrella, wallet
-            </span>
-          </li>
-          <li>
-            <span className="font-bold text-text-main">
-              2. Filter by date.
-            </span>{" "}
-            Use the calendar below to see items surrendered on a specific day or
-            date range.
-          </li>
-        </ol>
-      </div>
+  const activeVenueName = useMemo(() => {
+    if (activeVenue === "all") return "";
+    return venues.find((v) => v.slug === activeVenue)?.name || activeVenue;
+  }, [activeVenue, venues]);
 
-      {/* Search + date range + filters */}
-      <div className="space-y-3">
+  const thisSunday = useMemo(
+    () => format(startOfWeek(new Date()), "yyyy-MM-dd"),
+    [],
+  );
+
+  const searchFor = (term: string) => {
+    setQueryDraft(term);
+    updateParams((next) => {
+      next.set("q", term);
+    });
+  };
+
+  const applyThisSunday = () => {
+    setRange(thisSunday, thisSunday);
+  };
+
+  const hasActiveFilters =
+    queryDraft.trim() ||
+    initialDateFrom ||
+    initialDateTo ||
+    activeVenue !== "all";
+
+  return (
+    <div className="mb-8 rounded-3xl border border-border-main bg-surface p-4 shadow-sm sm:p-5">
+      <div className="space-y-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-dim" />
+          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-text-dim" />
           <input
             type="search"
             value={queryDraft}
             onChange={(e) => setQueryDraft(e.target.value)}
-            placeholder="Search for a lost item…"
-            className="w-full rounded-xl border border-border-main bg-surface px-10 py-3 text-sm text-text-main focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            placeholder="Search by item, place, or claim code"
+            className="w-full rounded-2xl border border-border-main bg-white px-12 py-4 text-base font-medium text-text-main shadow-sm transition-colors placeholder:text-text-dim focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/10"
           />
           {queryDraft && (
             <button
               type="button"
               onClick={() => setQueryDraft("")}
               aria-label="Clear search"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-dim hover:text-text-main"
+              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-text-dim hover:bg-surface-hover hover:text-text-main"
             >
               <X className="h-4 w-4" />
             </button>
           )}
         </div>
 
-        <div ref={popoverRef} className="relative inline-block">
-          <button
-            type="button"
-            onClick={() => setPopoverOpen((open) => !open)}
-            className={cn(
-              "inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-sans font-bold uppercase tracking-wider transition-all",
-              initialDateFrom || initialDateTo
-                ? "border-brand/40 bg-brand/10 text-brand"
-                : "border-border-main bg-surface text-text-dim hover:border-border-hover hover:text-text-main",
-            )}
-          >
-            <CalendarIcon className="h-4 w-4" />
-            {dateRangeLabel}
-            {(initialDateFrom || initialDateTo) && (
-              <span
-                role="button"
-                tabIndex={0}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setRange("", "");
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setRange("", "");
-                  }
-                }}
-                className="ml-1 rounded p-0.5 hover:bg-brand/20"
-                aria-label="Clear date filter"
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={applyThisSunday}
+              className="inline-flex items-center gap-2 rounded-full border border-border-main bg-white px-4 py-2 text-[10px] font-sans font-bold uppercase tracking-widest text-text-muted transition-all hover:border-brand/40 hover:bg-brand/10 hover:text-brand"
+            >
+              <Clock className="h-3.5 w-3.5" />
+              This Sunday
+            </button>
+            <div ref={popoverRef} className="relative inline-block">
+              <button
+                type="button"
+                onClick={() => setPopoverOpen((open) => !open)}
+                className={cn(
+                  "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[10px] font-sans font-bold uppercase tracking-widest transition-all",
+                  initialDateFrom || initialDateTo
+                    ? "border-brand/40 bg-brand/10 text-brand"
+                    : "border-border-main bg-white text-text-muted hover:border-border-hover hover:text-text-main",
+                )}
               >
-                <X className="h-3 w-3" />
-              </span>
-            )}
-          </button>
+                <CalendarIcon className="h-3.5 w-3.5" />
+                {dateRangeLabel}
+              </button>
 
-          {popoverOpen && (
-            <div className="absolute left-0 top-full z-40 mt-2 w-[320px] rounded-2xl border border-border-main bg-surface p-4 shadow-2xl">
-              <RangeCalendar
-                initialFrom={initialDateFrom}
-                initialTo={initialDateTo}
-                onApply={(from, to) => {
-                  setRange(from, to);
-                  setPopoverOpen(false);
-                }}
-                onClear={() => {
-                  setRange("", "");
-                  setPopoverOpen(false);
-                }}
-              />
+              {popoverOpen && (
+                <div className="absolute left-0 top-full z-40 mt-2 w-[320px] rounded-2xl border border-border-main bg-surface p-4 shadow-2xl">
+                  <RangeCalendar
+                    initialFrom={initialDateFrom}
+                    initialTo={initialDateTo}
+                    onApply={(from, to) => {
+                      setRange(from, to);
+                      setPopoverOpen(false);
+                    }}
+                    onClear={() => {
+                      setRange("", "");
+                      setPopoverOpen(false);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+            {SUGGESTED_SEARCHES.map((term) => (
+              <button
+                key={term}
+                type="button"
+                onClick={() => searchFor(term)}
+                className="rounded-full border border-border-main bg-white px-3 py-2 text-[10px] font-sans font-bold uppercase tracking-widest text-text-muted transition-all hover:border-brand/40 hover:bg-brand/10 hover:text-brand"
+              >
+                {term}
+              </button>
+            ))}
+          </div>
+
+          {hasActiveFilters && (
+            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+              {queryDraft.trim() && (
+                <FilterPill
+                  label={`Search: ${queryDraft.trim()}`}
+                  onClear={() => setQueryDraft("")}
+                />
+              )}
+              {(initialDateFrom || initialDateTo) && (
+                <FilterPill
+                  label={dateRangeLabel}
+                  onClear={() => setRange("", "")}
+                />
+              )}
+              {activeVenue !== "all" && (
+                <FilterPill
+                  label={activeVenueName}
+                  onClear={() => setVenue("all")}
+                />
+              )}
             </div>
           )}
         </div>
 
-        {/* Status hidden if currently anything other than default */}
         {statusFilter !== "unclaimed" && (
           <p className="text-[10px] font-sans uppercase tracking-widest text-text-dim">
             Status filter: {statusFilter}
           </p>
         )}
 
-        {/* Venue chips */}
-        <div className="space-y-2">
+        <div className="border-t border-border-main pt-4">
+          <div className="mb-2 flex items-center gap-2 text-[10px] font-sans font-bold uppercase tracking-widest text-text-dim">
+            <MapPin className="h-3.5 w-3.5" />
+            Venue
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <VenueChip
               label="All venues"
@@ -315,11 +349,11 @@ export function PublicCatalogControls({
           </div>
 
           {childChips.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 pl-4">
+            <div className="mt-3 flex flex-wrap items-center gap-2 border-l border-border-main pl-4">
               <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-text-dim">
-                Within
+                Within{" "}
                 {expandedParent
-                  ? ` ${venues.find((v) => v.slug === expandedParent)?.name || ""}`
+                  ? venues.find((v) => v.slug === expandedParent)?.name || ""
                   : ""}
                 :
               </span>
@@ -335,8 +369,33 @@ export function PublicCatalogControls({
             </div>
           )}
         </div>
+
+        <p className="text-xs leading-5 text-text-dim">
+          Our team may ask a few questions or use a private photo to confirm
+          it is yours.
+        </p>
       </div>
     </div>
+  );
+}
+
+function FilterPill({
+  label,
+  onClear,
+}: {
+  label: string;
+  onClear: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClear}
+      className="inline-flex max-w-full items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-[10px] font-sans font-bold uppercase tracking-widest text-brand transition-colors hover:bg-brand/15"
+      aria-label={`Clear ${label}`}
+    >
+      <span className="truncate">{label}</span>
+      <X className="h-3 w-3 shrink-0" />
+    </button>
   );
 }
 
