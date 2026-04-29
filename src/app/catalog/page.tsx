@@ -55,71 +55,86 @@ export default async function CatalogPage({
   let total = 0;
 
   if (!isIdle) {
-    let baseQuery = supabase
-      .from("found_items")
-      .select(
-        "id, name, item_code, category, venue, location, date_found, category_name:found_item_categories(name), venue_name:found_item_venues!found_items_venue_fkey(name, parent_slug, parent:found_item_venues!found_item_venues_parent_slug_fkey(name))",
-        { count: "exact" },
-      )
-      .eq("is_public", true)
-      .is("archived_at", null)
-      .order("date_found", { ascending: false });
+    const venueSlugs =
+      venueFilter === "all" ? null : expandVenueFilter(allVenues, venueFilter);
 
     if (query) {
-      const tokens = tokenizeQuery(query);
-      if (tokens.length > 0) {
-        const orFilter = tokens
-          .flatMap((token) => {
-            const escaped = escapeIlikePattern(token);
-            return [
-              `name.ilike.%${escaped}%`,
-              `description.ilike.%${escaped}%`,
-            ];
-          })
-          .join(",");
-        baseQuery = baseQuery.or(orFilter);
+      const from = (page - 1) * PAGE_SIZE;
+      const { data: rows, error } = await supabase.rpc(
+        "search_public_catalog_items",
+        {
+          p_query: query,
+          p_status: statusFilter,
+          p_venues: venueSlugs,
+          p_date_from: dateFrom || null,
+          p_date_to: dateTo || null,
+          p_limit: PAGE_SIZE,
+          p_offset: from,
+        },
+      );
+
+      if (error) {
+        console.error("Error searching catalog items:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
       }
-    }
 
-    if (statusFilter !== "all") {
-      baseQuery = baseQuery.eq("status", statusFilter);
-    }
+      const searchRows = (rows || []) as unknown as PublicCatalogSearchRow[];
+      items = searchRows;
+      total = Number(searchRows[0]?.total_count ?? 0);
+    } else {
+      let baseQuery = supabase
+        .from("found_items")
+        .select(
+          "id, name, item_code, category, venue, location, date_found, category_name:found_item_categories(name), venue_name:found_item_venues!found_items_venue_fkey(name, parent_slug, parent:found_item_venues!found_item_venues_parent_slug_fkey(name))",
+          { count: "exact" },
+        )
+        .eq("is_public", true)
+        .is("archived_at", null)
+        .order("date_found", { ascending: false });
 
-    if (venueFilter !== "all") {
-      const slugs = expandVenueFilter(allVenues, venueFilter);
-      if (slugs.length === 1) {
-        baseQuery = baseQuery.eq("venue", slugs[0]);
-      } else {
-        baseQuery = baseQuery.in("venue", slugs);
+      if (statusFilter !== "all") {
+        baseQuery = baseQuery.eq("status", statusFilter);
       }
+
+      if (venueSlugs) {
+        if (venueSlugs.length === 1) {
+          baseQuery = baseQuery.eq("venue", venueSlugs[0]);
+        } else {
+          baseQuery = baseQuery.in("venue", venueSlugs);
+        }
+      }
+
+      if (dateFrom) {
+        baseQuery = baseQuery.gte("date_found", dateFrom);
+      }
+
+      if (dateTo) {
+        baseQuery = baseQuery.lte("date_found", dateTo);
+      }
+
+      const from = (page - 1) * PAGE_SIZE;
+      const {
+        data: rows,
+        count,
+        error,
+      } = await baseQuery.range(from, from + PAGE_SIZE - 1);
+
+      if (error) {
+        console.error("Error fetching items:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
+      }
+
+      items = (rows || []) as unknown as PublicCatalogItem[];
+      total = count ?? 0;
     }
-
-    if (dateFrom) {
-      baseQuery = baseQuery.gte("date_found", dateFrom);
-    }
-
-    if (dateTo) {
-      baseQuery = baseQuery.lte("date_found", dateTo);
-    }
-
-    const from = (page - 1) * PAGE_SIZE;
-    const {
-      data: rows,
-      count,
-      error,
-    } = await baseQuery.range(from, from + PAGE_SIZE - 1);
-
-    if (error) {
-      console.error("Error fetching items:", {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code,
-      });
-    }
-
-    items = (rows || []) as unknown as PublicCatalogItem[];
-    total = count ?? 0;
   }
 
   const {
@@ -256,24 +271,8 @@ interface PublicCatalogItem {
   date_found: string;
 }
 
-function tokenizeQuery(query: string): string[] {
-  return query
-    .toLowerCase()
-    .split(/\s+/)
-    .map((token) => token.trim())
-    .filter((token) => token.length >= 2);
-}
-
-function escapeIlikePattern(token: string): string {
-  // PostgREST `or` filter parses commas/parens as syntax. Escape them along
-  // with the standard ILIKE wildcards so user input cannot break the filter.
-  return token
-    .replace(/\\/g, "\\\\")
-    .replace(/,/g, "\\,")
-    .replace(/\(/g, "\\(")
-    .replace(/\)/g, "\\)")
-    .replace(/%/g, "\\%")
-    .replace(/_/g, "\\_");
+interface PublicCatalogSearchRow extends PublicCatalogItem {
+  total_count: number | string;
 }
 
 function expandVenueFilter(venues: VenueRow[], slug: string): string[] {
