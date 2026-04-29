@@ -256,14 +256,6 @@ export function PublicCatalogResults({
           )}
           <button
             type="button"
-            onClick={() => searchFor("Tumbler")}
-            className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 px-3 py-2 text-[10px] font-sans font-bold uppercase tracking-widest text-brand transition-all hover:bg-brand/15"
-          >
-            <Search className="h-3 w-3" />
-            Search tumbler
-          </button>
-          <button
-            type="button"
             onClick={clearFilters}
             className="inline-flex items-center gap-1.5 rounded-full border border-border-main bg-surface px-3 py-2 text-[10px] font-sans font-bold uppercase tracking-widest text-text-muted transition-all hover:border-border-hover hover:text-text-main"
           >
