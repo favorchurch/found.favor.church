@@ -35,10 +35,15 @@
   --border2: #d1d5db;
 }
 
+html {
+  background-color: var(--orange);
+}
+
 body {
   background-color: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
+  min-height: 100vh;
 }
 
 /* Custom scrollbar */
