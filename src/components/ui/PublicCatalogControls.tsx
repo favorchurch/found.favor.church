@@ -201,10 +201,17 @@ export function PublicCatalogControls({
   );
 
   const searchFor = (term: string) => {
-    setQueryDraft(term);
-    updateParams((next) => {
-      next.set("q", term);
-    });
+    if (queryDraft.toLowerCase() === term.toLowerCase()) {
+      setQueryDraft("");
+      updateParams((next) => {
+        next.delete("q");
+      });
+    } else {
+      setQueryDraft(term);
+      updateParams((next) => {
+        next.set("q", term);
+      });
+    }
   };
 
   const applyThisSunday = () => {
@@ -220,6 +227,49 @@ export function PublicCatalogControls({
   return (
     <div className="mb-8 rounded-3xl border border-border-main bg-surface p-4 shadow-sm sm:p-5">
       <div className="space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={applyThisSunday}
+            className="inline-flex items-center gap-2 rounded-full border border-border-main bg-white px-4 py-2 text-[10px] font-sans font-bold uppercase tracking-widest text-text-muted transition-all hover:border-brand/40 hover:bg-brand/10 hover:text-brand"
+          >
+            <Clock className="h-3.5 w-3.5" />
+            This Sunday
+          </button>
+          <div ref={popoverRef} className="relative inline-block">
+            <button
+              type="button"
+              onClick={() => setPopoverOpen((open) => !open)}
+              className={cn(
+                "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[10px] font-sans font-bold uppercase tracking-widest transition-all",
+                initialDateFrom || initialDateTo
+                  ? "border-brand/40 bg-brand/10 text-brand"
+                  : "border-border-main bg-white text-text-muted hover:border-border-hover hover:text-text-main",
+              )}
+            >
+              <CalendarIcon className="h-3.5 w-3.5" />
+              {dateRangeLabel}
+            </button>
+
+            {popoverOpen && (
+              <div className="absolute left-0 top-full z-40 mt-2 w-[320px] rounded-2xl border border-border-main bg-surface p-4 shadow-2xl">
+                <RangeCalendar
+                  initialFrom={initialDateFrom}
+                  initialTo={initialDateTo}
+                  onApply={(from, to) => {
+                    setRange(from, to);
+                    setPopoverOpen(false);
+                  }}
+                  onClear={() => {
+                    setRange("", "");
+                    setPopoverOpen(false);
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="relative">
           <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-text-dim" />
           <input
@@ -243,52 +293,17 @@ export function PublicCatalogControls({
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={applyThisSunday}
-              className="inline-flex items-center gap-2 rounded-full border border-border-main bg-white px-4 py-2 text-[10px] font-sans font-bold uppercase tracking-widest text-text-muted transition-all hover:border-brand/40 hover:bg-brand/10 hover:text-brand"
-            >
-              <Clock className="h-3.5 w-3.5" />
-              This Sunday
-            </button>
-            <div ref={popoverRef} className="relative inline-block">
-              <button
-                type="button"
-                onClick={() => setPopoverOpen((open) => !open)}
-                className={cn(
-                  "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[10px] font-sans font-bold uppercase tracking-widest transition-all",
-                  initialDateFrom || initialDateTo
-                    ? "border-brand/40 bg-brand/10 text-brand"
-                    : "border-border-main bg-white text-text-muted hover:border-border-hover hover:text-text-main",
-                )}
-              >
-                <CalendarIcon className="h-3.5 w-3.5" />
-                {dateRangeLabel}
-              </button>
-
-              {popoverOpen && (
-                <div className="absolute left-0 top-full z-40 mt-2 w-[320px] rounded-2xl border border-border-main bg-surface p-4 shadow-2xl">
-                  <RangeCalendar
-                    initialFrom={initialDateFrom}
-                    initialTo={initialDateTo}
-                    onApply={(from, to) => {
-                      setRange(from, to);
-                      setPopoverOpen(false);
-                    }}
-                    onClear={() => {
-                      setRange("", "");
-                      setPopoverOpen(false);
-                    }}
-                  />
-                </div>
-              )}
-            </div>
             {SUGGESTED_SEARCHES.map((term) => (
               <button
                 key={term}
                 type="button"
                 onClick={() => searchFor(term)}
-                className="rounded-full border border-border-main bg-white px-3 py-2 text-[10px] font-sans font-bold uppercase tracking-widest text-text-muted transition-all hover:border-brand/40 hover:bg-brand/10 hover:text-brand"
+                className={cn(
+                  "rounded-full border px-3 py-2 text-[10px] font-sans font-bold uppercase tracking-widest transition-all",
+                  queryDraft.toLowerCase() === term.toLowerCase()
+                    ? "border-brand/40 bg-brand/10 text-brand"
+                    : "border-border-main bg-white text-text-muted hover:border-brand/40 hover:bg-brand/10 hover:text-brand",
+                )}
               >
                 {term}
               </button>

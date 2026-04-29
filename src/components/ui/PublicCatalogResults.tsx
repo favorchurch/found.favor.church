@@ -134,9 +134,17 @@ export function PublicCatalogResults({
 
   const searchFor = (term: string) => {
     const next = new URLSearchParams(searchParams.toString());
-    next.set("q", term);
+    const currentQ = next.get("q") || "";
+    if (currentQ.toLowerCase() === term.toLowerCase()) {
+      next.delete("q");
+    } else {
+      next.set("q", term);
+    }
     next.delete("page");
-    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+    const queryString = next.toString();
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
+      scroll: false,
+    });
   };
 
   const clearFilters = () => {
@@ -178,7 +186,7 @@ export function PublicCatalogResults({
           venue. Photos stay private so our team can confirm ownership in
           person.
         </p>
-        <div className="mt-5 flex max-w-xl flex-wrap justify-center gap-2">
+        <div className="mx-auto mt-5 flex max-w-xl flex-wrap justify-center gap-2">
           {SUGGESTED_SEARCHES.map((term) => (
             <button
               key={term}
