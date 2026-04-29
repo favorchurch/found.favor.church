@@ -1,8 +1,11 @@
-"use client";
-
-import { CalendarDays, Search, Sparkles, X } from "lucide-react";
+import { CalendarDays, Loader2, Search, Sparkles, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { PublicItemCard } from "@/components/ui/PublicItemCard";
+import { useQuery } from "@tanstack/react-query";
+import { createClient } from "@/utils/supabase/client";
+import { PAGE_SIZE } from "@/utils/constants";
+import { Pagination } from "@/components/ui/Pagination";
+import { cn } from "@/utils/cn";
 
 const SUGGESTED_SEARCHES = [
   "Cellphone",
@@ -12,6 +15,13 @@ const SUGGESTED_SEARCHES = [
   "Keys",
   "Jacket",
 ];
+
+interface VenueRow {
+  slug: string;
+  name: string;
+  parent_slug: string | null;
+  display_order: number | null;
+}
 
 interface PublicItem {
   id: string;
@@ -31,19 +41,96 @@ interface PublicItem {
 }
 
 interface PublicCatalogResultsProps {
-  items: PublicItem[];
+  initialItems: PublicItem[];
+  initialTotal: number;
   idle: boolean;
-  total: number;
+  venues: VenueRow[];
+  searchParams: {
+    q: string;
+    venue: string;
+    from: string;
+    to: string;
+    page: number;
+    status: string;
+  };
+}
+
+interface PublicCatalogSearchRow extends PublicItem {
+  total_count: number | string;
+}
+
+function expandVenueFilter(venues: VenueRow[], slug: string): string[] {
+  const target = venues.find((v) => v.slug === slug);
+  if (!target) return [slug];
+  if (target.parent_slug) return [slug];
+  const children = venues
+    .filter((v) => v.parent_slug === slug)
+    .map((v) => v.slug);
+  return [slug, ...children];
 }
 
 export function PublicCatalogResults({
-  items,
+  initialItems,
+  initialTotal,
   idle,
-  total,
+  venues,
+  searchParams: serverParams,
 }: PublicCatalogResultsProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  // We use the serverParams as the baseline, but the query key ensures
+  // we refetch when they change. Using initialData ensures SEO and fast first paint.
+  const { data, isLoading, isFetching, error } = useQuery({
+    queryKey: [
+      "public-catalog",
+      serverParams.q,
+      serverParams.venue,
+      serverParams.from,
+      serverParams.to,
+      serverParams.page,
+      serverParams.status,
+    ],
+    queryFn: async () => {
+      const supabase = createClient();
+      const venueSlugs =
+        serverParams.venue === "all"
+          ? null
+          : expandVenueFilter(venues, serverParams.venue);
+
+      const from = (serverParams.page - 1) * PAGE_SIZE;
+
+      const { data: rows, error } = await supabase.rpc(
+        "search_public_catalog_items",
+        {
+          p_query: serverParams.q,
+          p_status: serverParams.status,
+          p_venues: venueSlugs,
+          p_date_from: serverParams.from || null,
+          p_date_to: serverParams.to || null,
+          p_limit: PAGE_SIZE,
+          p_offset: from,
+        },
+      );
+
+      if (error) throw error;
+
+      const searchRows = (rows || []) as unknown as PublicCatalogSearchRow[];
+      return {
+        items: searchRows,
+        total: Number(searchRows[0]?.total_count ?? 0),
+      };
+    },
+    initialData: {
+      items: initialItems,
+      total: initialTotal,
+    },
+    enabled: !idle,
+  });
+
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
 
   const searchFor = (term: string) => {
     const next = new URLSearchParams(searchParams.toString());
@@ -108,7 +195,27 @@ export function PublicCatalogResults({
     );
   }
 
-  if (items.length === 0) {
+  if (error) {
+    return (
+      <div className="rounded-3xl border border-dashed border-red-200 bg-red-50 px-5 py-12 text-center">
+        <h3 className="text-base font-bold text-red-800">
+          Error loading catalog
+        </h3>
+        <p className="mt-2 text-sm text-red-600">
+          Please try again or contact support if the issue persists.
+        </p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="mt-4 rounded-full bg-red-100 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-red-700 hover:bg-red-200"
+        >
+          Reload page
+        </button>
+      </div>
+    );
+  }
+
+  if (items.length === 0 && !isLoading) {
     return (
       <div className="rounded-3xl border border-dashed border-border-main bg-white px-5 py-16 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface-hover">
@@ -160,23 +267,39 @@ export function PublicCatalogResults({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 className="text-sm font-bold text-text-main">
-            {total === 1 ? "1 possible match" : `${total} possible matches`}
-          </h2>
-          <p className="text-xs text-text-dim">
-            Show the claim reference at the information desk.
-          </p>
+        <div className="flex items-center gap-3">
+          <div>
+            <h2 className="text-sm font-bold text-text-main">
+              {total === 1 ? "1 possible match" : `${total} possible matches`}
+            </h2>
+            <p className="text-xs text-text-dim">
+              Show the claim reference at the information desk.
+            </p>
+          </div>
+          {isFetching && (
+            <Loader2 className="h-4 w-4 animate-spin text-brand" />
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div
+        className={cn(
+          "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 transition-opacity duration-200",
+          isFetching && items.length > 0 ? "opacity-60" : "opacity-100",
+        )}
+      >
         {items.map((item) => (
           <PublicItemCard key={item.id} item={item} />
         ))}
       </div>
+
+      {!idle && total > 0 && (
+        <div className="pt-4">
+          <Pagination total={total} />
+        </div>
+      )}
     </div>
   );
 }

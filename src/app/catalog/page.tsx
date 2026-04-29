@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
 import { LogOut } from "lucide-react";
-import { Pagination } from "@/components/ui/Pagination";
 import { PAGE_SIZE } from "@/utils/constants";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Link from "next/link";
@@ -171,10 +170,21 @@ export default async function CatalogPage({
           />
 
           <ErrorBoundary>
-            <PublicCatalogResults idle={isIdle} items={items} total={total} />
+            <PublicCatalogResults
+              idle={isIdle}
+              initialItems={items}
+              initialTotal={total}
+              venues={allVenues}
+              searchParams={{
+                q: query,
+                venue: venueFilter,
+                from: dateFrom,
+                to: dateTo,
+                page,
+                status: statusFilter,
+              }}
+            />
           </ErrorBoundary>
-
-          {!isIdle && <Pagination total={total} />}
         </div>
       </main>
 
