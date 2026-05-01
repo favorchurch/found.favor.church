@@ -9,6 +9,7 @@ export default async function PublicCatalogItemPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  notFound();
   const { id } = await params;
   const item = await getPublicCatalogItem(id);
 

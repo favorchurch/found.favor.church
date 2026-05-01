@@ -8,6 +8,7 @@ export default async function PublicCatalogItemModalPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  notFound();
   const { id } = await params;
   const item = await getPublicCatalogItem(id);
 

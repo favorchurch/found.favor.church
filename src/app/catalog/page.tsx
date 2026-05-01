@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
 import { LogOut } from "lucide-react";
@@ -28,6 +29,7 @@ export default async function CatalogPage({
     to?: string;
   }>;
 }) {
+  notFound();
   const params = await searchParams;
   const query = (params.q || "").trim();
   const statusFilter = params.status || "unclaimed";
