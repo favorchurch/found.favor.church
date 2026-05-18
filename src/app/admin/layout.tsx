@@ -11,6 +11,7 @@ export default async function AdminLayout({
   modal: React.ReactNode;
 }) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
   const isDev = process.env.NODE_ENV === "development";
   const mockDevUser = {
     id: "00000000-0000-0000-0000-000000000000",
