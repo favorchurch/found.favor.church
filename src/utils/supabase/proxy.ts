@@ -69,19 +69,21 @@ export async function updateSession(request: NextRequest) {
 
   // Protect /admin routes
   if (request.nextUrl.pathname.startsWith('/admin') && !user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    
-    // Create redirect response
-    const redirectResponse = NextResponse.redirect(url)
-    
-    // IMPORTANT: Transfer all session cookies to the redirect response
-    // otherwise the login/session refresh will be lost on the next request.
-    response.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie.name, cookie.value)
-    })
-    
-    return redirectResponse
+    if (process.env.NODE_ENV !== 'development') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      
+      // Create redirect response
+      const redirectResponse = NextResponse.redirect(url)
+      
+      // IMPORTANT: Transfer all session cookies to the redirect response
+      // otherwise the login/session refresh will be lost on the next request.
+      response.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie.name, cookie.value)
+      })
+      
+      return redirectResponse
+    }
   }
 
   return response

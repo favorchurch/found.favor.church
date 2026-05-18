@@ -26,7 +26,14 @@ export async function upsertCategory(data: z.infer<typeof categorySchema>) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user || !isAdmin(user.email)) {
+  const isDev = process.env.NODE_ENV === "development";
+  const mockDevUser = {
+    id: "00000000-0000-0000-0000-000000000000",
+    email: "dev@favor.church",
+  };
+  const effectiveUser = user || (isDev ? mockDevUser : null);
+
+  if (!effectiveUser || !isAdmin(effectiveUser.email)) {
     throw new Error("Unauthorized");
   }
 
@@ -60,7 +67,14 @@ export async function deleteCategory(slug: string, reassignToSlug: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user || !isAdmin(user.email)) {
+  const isDev = process.env.NODE_ENV === "development";
+  const mockDevUser = {
+    id: "00000000-0000-0000-0000-000000000000",
+    email: "dev@favor.church",
+  };
+  const effectiveUser = user || (isDev ? mockDevUser : null);
+
+  if (!effectiveUser || !isAdmin(effectiveUser.email)) {
     throw new Error("Unauthorized");
   }
 

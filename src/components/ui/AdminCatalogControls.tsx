@@ -18,7 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/utils/supabase/client";
+import { getAdminItemCountsByDate } from "@/app/admin/actions/items";
 import { cn } from "@/utils/cn";
 import { RangeCalendar } from "@/components/ui/PublicCatalogControls";
 import { SortSelector } from "@/components/ui/SortSelector";
@@ -71,12 +71,7 @@ export function AdminCatalogControls({
   const { data: dateCounts } = useQuery({
     queryKey: ["admin-catalog-item-counts"],
     queryFn: async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase.rpc(
-        "get_admin_catalog_item_counts_by_date",
-      );
-      if (error) throw error;
-      return data as { date_found: string; item_count: number }[];
+      return await getAdminItemCountsByDate();
     },
   });
 

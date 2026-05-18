@@ -30,7 +30,14 @@ export async function upsertVenue(data: z.infer<typeof venueSchema>) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user || !isAdmin(user.email)) {
+  const isDev = process.env.NODE_ENV === "development";
+  const mockDevUser = {
+    id: "00000000-0000-0000-0000-000000000000",
+    email: "dev@favor.church",
+  };
+  const effectiveUser = user || (isDev ? mockDevUser : null);
+
+  if (!effectiveUser || !isAdmin(effectiveUser.email)) {
     throw new Error("Unauthorized");
   }
 
@@ -88,6 +95,7 @@ export async function upsertVenue(data: z.infer<typeof venueSchema>) {
     throw error;
   }
 
+  revalidatePath("/admin/venues");
   revalidatePath("/admin/settings");
   revalidatePath("/admin/dashboard");
   revalidatePath("/catalog");
@@ -100,7 +108,14 @@ export async function deleteVenue(slug: string, reassignToSlug: string) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user || !isAdmin(user.email)) {
+  const isDev = process.env.NODE_ENV === "development";
+  const mockDevUser = {
+    id: "00000000-0000-0000-0000-000000000000",
+    email: "dev@favor.church",
+  };
+  const effectiveUser = user || (isDev ? mockDevUser : null);
+
+  if (!effectiveUser || !isAdmin(effectiveUser.email)) {
     throw new Error("Unauthorized");
   }
 

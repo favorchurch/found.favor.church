@@ -17,6 +17,9 @@ export default async function NewItemPage() {
     getVenues(),
   ]);
 
+  const isDev = process.env.NODE_ENV === "development";
+  const currentUserEmail = user?.email || (isDev ? "dev@favor.church" : undefined);
+
   return (
     <div className="p-8 space-y-8">
       <div className="flex items-center gap-4">
@@ -33,7 +36,7 @@ export default async function NewItemPage() {
       </div>
 
       <ItemForm
-        currentUserEmail={user?.email}
+        currentUserEmail={currentUserEmail}
         categories={categories}
         venues={venues}
       />

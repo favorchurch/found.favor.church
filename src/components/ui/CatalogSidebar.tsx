@@ -5,6 +5,7 @@ import { useTransition } from "react";
 import { RangeCalendar } from "./PublicCatalogControls";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/utils/supabase/client";
+import { getAdminItemCountsByDate } from "@/app/admin/actions/items";
 
 export function CatalogSidebar({
   initialDateFrom,
@@ -23,6 +24,9 @@ export function CatalogSidebar({
   const { data: dateCounts } = useQuery({
     queryKey: [countsRpc],
     queryFn: async () => {
+      if (countsRpc === "get_admin_catalog_item_counts_by_date") {
+        return await getAdminItemCountsByDate();
+      }
       const supabase = createClient();
       const { data, error } = await supabase.rpc(countsRpc);
       if (error) throw error;

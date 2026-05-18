@@ -46,18 +46,30 @@ export async function upsertItem(data: z.infer<typeof itemSchema>) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user || !isAdmin(user.email)) {
+  const isDev = process.env.NODE_ENV === "development";
+  const mockDevUser = {
+    id: "00000000-0000-0000-0000-000000000000",
+    email: "dev@favor.church",
+  };
+  const effectiveUser = user || (isDev ? mockDevUser : null);
+
+  if (!effectiveUser || !isAdmin(effectiveUser.email)) {
     throw new Error("Unauthorized");
   }
 
   const validatedData = itemSchema.parse(data);
   const { id, ...itemFields } = validatedData;
 
+  const isMockId = effectiveUser.id === "00000000-0000-0000-0000-000000000000";
+
   const itemData: FoundItemUpdate = {
     ...itemFields,
     updated_at: new Date().toISOString(),
-    updated_by: user.id,
+    updated_by: isMockId ? undefined : effectiveUser.id,
   };
+  if (isMockId) {
+    delete (itemData as unknown as Record<string, unknown>).updated_by;
+  }
 
   if (id) {
     const { error } = await supabase
@@ -66,8 +78,10 @@ export async function upsertItem(data: z.infer<typeof itemSchema>) {
       .eq("id", id);
     if (error) throw error;
   } else {
-    itemData.created_by = user.id;
-    itemData.created_by_email = user.email || "Unknown";
+    if (!isMockId) {
+      itemData.created_by = effectiveUser.id;
+    }
+    itemData.created_by_email = effectiveUser.email || "Unknown";
     const { error } = await supabase
       .from("found_items")
       .insert([itemData]);
@@ -83,7 +97,14 @@ export async function archiveOldItems() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user || !isAdmin(user.email)) {
+  const isDev = process.env.NODE_ENV === "development";
+  const mockDevUser = {
+    id: "00000000-0000-0000-0000-000000000000",
+    email: "dev@favor.church",
+  };
+  const effectiveUser = user || (isDev ? mockDevUser : null);
+
+  if (!effectiveUser || !isAdmin(effectiveUser.email)) {
     throw new Error("Unauthorized");
   }
 
@@ -91,11 +112,13 @@ export async function archiveOldItems() {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const dateStr = thirtyDaysAgo.toISOString().split('T')[0];
 
+  const isMockId = effectiveUser.id === "00000000-0000-0000-0000-000000000000";
+
   const { error } = await supabase
     .from("found_items")
     .update({ 
       archived_at: new Date().toISOString(),
-      updated_by: user.id 
+      ...(isMockId ? {} : { updated_by: effectiveUser.id })
     })
     .in("status", ["claimed", "disposed"])
     .lt("date_found", dateStr)
@@ -111,7 +134,14 @@ export async function deleteItem(id: string, photoPath?: string | null) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user || !isAdmin(user.email)) {
+  const isDev = process.env.NODE_ENV === "development";
+  const mockDevUser = {
+    id: "00000000-0000-0000-0000-000000000000",
+    email: "dev@favor.church",
+  };
+  const effectiveUser = user || (isDev ? mockDevUser : null);
+
+  if (!effectiveUser || !isAdmin(effectiveUser.email)) {
     throw new Error("Unauthorized");
   }
 
@@ -129,4 +159,11 @@ export async function deleteItem(id: string, photoPath?: string | null) {
   revalidatePath("/admin/dashboard");
   revalidatePath("/catalog");
   return { success: true };
+}
+
+export async function getAdminItemCountsByDate() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_admin_catalog_item_counts_by_date");
+  if (error) throw error;
+  return data as { date_found: string; item_count: number }[];
 }
