@@ -33,7 +33,7 @@ interface FoundItemUpdate {
   is_public: boolean;
   photo_path?: string | null;
   updated_at: string;
-  updated_by: string;
+  updated_by?: string;
   created_by?: string;
   created_by_email?: string;
   claimed_date?: string | null;

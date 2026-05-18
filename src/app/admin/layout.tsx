@@ -24,7 +24,7 @@ export default async function AdminLayout({
   }
 
   if (!isAdmin(effectiveUser.email)) {
-    redirect("/catalog");
+    redirect("/");
   }
 
   return (
