@@ -236,7 +236,7 @@ export function AdminCatalogControls({
           ))}
         </div>
 
-        <div className="relative flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={applyThisSunday}
@@ -250,45 +250,10 @@ export function AdminCatalogControls({
             <Clock className="h-3.5 w-3.5" />
             Last Sunday
           </button>
-          <div ref={popoverRef} className="inline-block lg:hidden">
-            <button
-              type="button"
-              onClick={() => setPopoverOpen((open) => !open)}
-              className={cn(
-                "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[10px] font-sans font-bold uppercase tracking-widest transition-all",
-                initialDateFrom || initialDateTo
-                  ? "border-brand/40 bg-brand/10 text-brand"
-                  : "border-border-main bg-white text-text-muted hover:border-border-hover hover:text-text-main",
-              )}
-            >
-              <CalendarIcon className="h-3.5 w-3.5" />
-              {dateRangeLabel}
-            </button>
-            {popoverOpen && (
-              <div
-                className="absolute left-1/2 top-full z-40 mt-2 max-w-[320px] -translate-x-1/2 rounded-2xl border border-border-main bg-surface p-4 shadow-2xl"
-                style={{ width: "calc(100vw - 2rem)" }}
-              >
-                <RangeCalendar
-                  initialFrom={initialDateFrom}
-                  initialTo={initialDateTo}
-                  dateCounts={dateCounts}
-                  onChange={(from, to, completedRange) => {
-                    setRange(from, to);
-                    if (completedRange) setPopoverOpen(false);
-                  }}
-                  onClear={() => {
-                    setRange("", "");
-                    setPopoverOpen(false);
-                  }}
-                />
-              </div>
-            )}
-          </div>
         </div>
 
         <form
-          className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto_auto]"
+          className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto_auto_auto]"
           onSubmit={(event) => {
             event.preventDefault();
             applySearch();
@@ -321,6 +286,40 @@ export function AdminCatalogControls({
             <Search className="h-4 w-4" />
             Find
           </button>
+          <div ref={popoverRef} className="relative lg:hidden">
+            <button
+              type="button"
+              onClick={() => setPopoverOpen((open) => !open)}
+              aria-label={dateRangeLabel}
+              className={cn(
+                "flex h-full items-center justify-center rounded-full border px-4 aspect-square transition-all",
+                initialDateFrom || initialDateTo
+                  ? "border-brand/40 bg-brand/10 text-brand"
+                  : "border-border-main bg-white text-text-muted hover:border-border-hover hover:text-text-main",
+              )}
+            >
+              <CalendarIcon className="h-4 w-4" />
+            </button>
+            {popoverOpen && (
+              <div
+                className="absolute right-0 top-full z-40 mt-2 w-[320px] rounded-2xl border border-border-main bg-surface p-4 shadow-2xl"
+              >
+                <RangeCalendar
+                  initialFrom={initialDateFrom}
+                  initialTo={initialDateTo}
+                  dateCounts={dateCounts}
+                  onChange={(from, to, completedRange) => {
+                    setRange(from, to);
+                    if (completedRange) setPopoverOpen(false);
+                  }}
+                  onClear={() => {
+                    setRange("", "");
+                    setPopoverOpen(false);
+                  }}
+                />
+              </div>
+            )}
+          </div>
           <SortSelector defaultValue={sortBy} />
         </form>
 
@@ -378,6 +377,21 @@ export function AdminCatalogControls({
               ))}
             </div>
           )}
+        </div>
+
+        <div className="hidden lg:block border-t border-border-main pt-4">
+          <div className="mb-3 text-[10px] font-sans font-bold uppercase tracking-widest text-text-dim">
+            Filter by Date
+          </div>
+          <div className="max-w-xs">
+            <RangeCalendar
+              initialFrom={initialDateFrom}
+              initialTo={initialDateTo}
+              dateCounts={dateCounts}
+              onChange={(from, to) => setRange(from, to)}
+              onClear={() => setRange("", "")}
+            />
+          </div>
         </div>
       </div>
     </div>

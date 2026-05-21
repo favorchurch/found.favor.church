@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
 import { type Item } from "@/components/ui/ItemCard";
-import { PlusCircle, Globe } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import Link from "next/link";
+import { format, parseISO } from "date-fns";
 import { ExportCSV } from "@/components/ui/ExportCSV";
 import { AdminItemsView } from "@/components/ui/AdminItemsView";
 import { Pagination } from "@/components/ui/Pagination";
@@ -15,7 +16,6 @@ import {
   normalizeAdminStatus,
   type CatalogVenue,
 } from "@/utils/catalogFilters";
-import { CatalogSidebar } from "@/components/ui/CatalogSidebar";
 
 export const metadata: Metadata = {
   title: "Dashboard | Lost & Found — Favor Church",
@@ -96,13 +96,6 @@ export default async function DashboardPage({
           <p className="text-[10px] text-text-dim uppercase tracking-widest mt-1">Manage and track lost and found items</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link
-            href="/catalog"
-            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-sans font-bold uppercase tracking-widest border border-border-main bg-surface hover:bg-surface-hover hover:border-border-hover text-text-muted hover:text-text-main transition-all"
-          >
-            <Globe className="h-3.5 w-3.5" />
-            Public Catalog
-          </Link>
           <ExportCSV items={dashboardItems} />
           <Link
             href="/admin/items/new"
@@ -114,32 +107,38 @@ export default async function DashboardPage({
         </div>
       </div>
 
-      <div className="lg:grid lg:grid-cols-[320px_1fr] lg:items-start lg:gap-8">
-        <aside className="sticky top-20 hidden lg:block">
-          <CatalogSidebar
-            initialDateFrom={dateFrom}
-            initialDateTo={dateTo}
-            countsRpc="get_admin_catalog_item_counts_by_date"
-          />
-        </aside>
+      <div className="space-y-8">
+        <AdminCatalogControls
+          initialQuery={query}
+          initialDateFrom={dateFrom}
+          initialDateTo={dateTo}
+          venues={allVenues}
+          activeVenue={venueFilter}
+          statusFilter={statusFilter}
+          sortBy={sortBy}
+        />
 
-        <div className="space-y-8">
-          <AdminCatalogControls
-            initialQuery={query}
-            initialDateFrom={dateFrom}
-            initialDateTo={dateTo}
-            venues={allVenues}
-            activeVenue={venueFilter}
-            statusFilter={statusFilter}
-            sortBy={sortBy}
-          />
+        <p className="text-[11px] font-sans text-text-dim uppercase tracking-widest -mt-4">
+          {totalFiltered} item{totalFiltered !== 1 ? "s" : ""}
+          {dateFrom || dateTo
+            ? ` · ${
+                dateFrom && dateTo
+                  ? dateFrom === dateTo
+                    ? format(parseISO(dateFrom), "MMM d, yyyy")
+                    : `${format(parseISO(dateFrom), "MMM d")} – ${format(parseISO(dateTo), "MMM d, yyyy")}`
+                  : dateFrom
+                    ? `From ${format(parseISO(dateFrom), "MMM d, yyyy")}`
+                    : `Until ${format(parseISO(dateTo), "MMM d, yyyy")}`
+              }`
+            : ""}
+          {statusFilter !== "all" ? ` · ${statusFilter}` : ""}
+        </p>
 
-          <ErrorBoundary>
-            <AdminItemsView items={dashboardItems} />
-          </ErrorBoundary>
+        <ErrorBoundary>
+          <AdminItemsView items={dashboardItems} />
+        </ErrorBoundary>
 
-          <Pagination total={totalFiltered} />
-        </div>
+        <Pagination total={totalFiltered} />
       </div>
     </div>
   );

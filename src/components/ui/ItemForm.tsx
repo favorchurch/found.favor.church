@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Trash2, Save, Camera, Globe, Lock, ExternalLink, X } from "lucide-react";
+import { Trash2, Save, Camera, ExternalLink, X } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useRouter } from "next/navigation";
 import { type ItemStatus } from "@/components/ui/StatusBadge";
@@ -285,7 +285,6 @@ export function ItemForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <input type="hidden" name="category" value={submittedCategory} />
       <input type="hidden" name="status" value={status} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left Column: Inputs */}
@@ -316,6 +315,19 @@ export function ItemForm({
           </div>
 
           <div className="space-y-2">
+            <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
+              Description
+            </label>
+            <textarea
+              name="description"
+              defaultValue={initialData?.description ?? ""}
+              placeholder="Features, color, brand..."
+              rows={3}
+              className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm text-text-main focus:border-brand focus:outline-none transition-colors resize-none"
+            />
+          </div>
+
+          <div className="space-y-2">
             <div className="flex items-center justify-between gap-4">
               <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
                 Category *
@@ -330,39 +342,22 @@ export function ItemForm({
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>
-            <div className="flex flex-wrap gap-2" role="listbox" aria-label="Category">
+            <select
+              name="category"
+              value={submittedCategory}
+              onChange={(e) => handleCategorySelect(e.target.value)}
+              className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm font-medium text-text-main focus:border-brand focus:outline-none transition-colors"
+            >
               {categories.length > 0 ? (
-                categories.map((category) => {
-                  const isSelected = submittedCategory === category.slug;
-                  return (
-                    <button
-                      key={category.slug}
-                      type="button"
-                      role="option"
-                      aria-selected={isSelected}
-                      onClick={() => handleCategorySelect(category.slug)}
-                      className={cn(
-                        "rounded-full border px-3 py-1.5 text-xs font-sans font-bold uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
-                        isSelected
-                          ? "border-brand bg-brand text-white shadow-sm shadow-brand/20"
-                          : "border-border-hover bg-bg text-text-dim hover:border-brand/50 hover:text-text-main",
-                      )}
-                    >
-                      {category.name}
-                    </button>
-                  );
-                })
+                categories.map((category) => (
+                  <option key={category.slug} value={category.slug}>
+                    {category.name}
+                  </option>
+                ))
               ) : (
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected="true"
-                  className="rounded-full border border-brand bg-brand px-3 py-1.5 text-xs font-sans font-bold uppercase tracking-widest text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-                >
-                  Others
-                </button>
+                <option value="others">Others</option>
               )}
-            </div>
+            </select>
             {matchedCategory && (
               <div className="flex items-center gap-2 text-[11px] text-text-dim">
                 <span>Matched from &quot;{matchedCategory.name}&quot;</span>
@@ -393,58 +388,56 @@ export function ItemForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
-                Status
-              </label>
-              <div className="grid grid-cols-3 rounded-lg border border-border-hover bg-bg p-1">
-                {(["unclaimed", "claimed", "disposed"] as const).map(
-                  (statusOption) => (
-                    <button
-                      key={statusOption}
-                      type="button"
-                      onClick={() => setStatus(statusOption)}
-                      className={cn(
-                        "rounded-md px-2 py-2 text-[10px] font-sans font-bold uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
-                        status === statusOption
-                          ? "bg-surface-active text-text-main shadow-sm"
-                          : "text-text-dim hover:text-text-main",
-                        status === statusOption &&
-                          statusOption === "unclaimed" &&
-                          "text-yellow-500",
-                        status === statusOption &&
-                          statusOption === "claimed" &&
-                          "text-emerald-500",
-                        status === statusOption &&
-                          statusOption === "disposed" &&
-                          "text-red-500",
-                      )}
-                    >
-                      {statusOption}
-                    </button>
-                  ),
-                )}
-              </div>
+          <div className="space-y-2">
+            <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
+              Status
+            </label>
+            <div className="grid grid-cols-3 rounded-lg border border-border-hover bg-bg p-1">
+              {(["unclaimed", "claimed", "disposed"] as const).map(
+                (statusOption) => (
+                  <button
+                    key={statusOption}
+                    type="button"
+                    onClick={() => setStatus(statusOption)}
+                    className={cn(
+                      "rounded-md px-2 py-2 text-[10px] font-sans font-bold uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
+                      status === statusOption
+                        ? "bg-surface-active text-text-main shadow-sm"
+                        : "text-text-dim hover:text-text-main",
+                      status === statusOption &&
+                        statusOption === "unclaimed" &&
+                        "text-yellow-500",
+                      status === statusOption &&
+                        statusOption === "claimed" &&
+                        "text-emerald-500",
+                      status === statusOption &&
+                        statusOption === "disposed" &&
+                        "text-red-500",
+                    )}
+                  >
+                    {statusOption}
+                  </button>
+                ),
+              )}
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
-                Venue
-              </label>
-              <select
-                name="venue"
-                defaultValue={initialData?.venue ?? ""}
-                className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm font-medium focus:border-brand focus:outline-none transition-colors"
-              >
-                <option value="">Unassigned</option>
-                {venues.map((venue) => (
-                  <option key={venue.slug} value={venue.slug}>
-                    {venue.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="space-y-2">
+            <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
+              Venue
+            </label>
+            <select
+              name="venue"
+              defaultValue={initialData?.venue ?? ""}
+              className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm font-medium focus:border-brand focus:outline-none transition-colors"
+            >
+              <option value="">Unassigned</option>
+              {venues.map((venue) => (
+                <option key={venue.slug} value={venue.slug}>
+                  {venue.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="space-y-2 transition-all duration-300 ease-in-out overflow-hidden animate-in fade-in slide-in-from-top-2">
@@ -549,42 +542,11 @@ export function ItemForm({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="font-sans text-[10px] uppercase tracking-widest text-text-dim">
-              Description
-            </label>
-            <textarea
-              name="description"
-              defaultValue={initialData?.description ?? ""}
-              placeholder="Features, color, brand..."
-              rows={3}
-              className="w-full bg-bg border border-border-hover rounded-lg px-4 py-2.5 text-sm text-text-main focus:border-brand focus:outline-none transition-colors resize-none"
-            />
-          </div>
-
-          <div className="pt-2">
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  name="is_public"
-                  defaultChecked={initialData?.is_public || false}
-                  className="sr-only peer"
-                />
-                <div className="w-10 h-5 bg-border-main rounded-full peer peer-focus-visible:ring-2 peer-focus-visible:ring-brand/40 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-text-main">
-                  Publicly listed
-                </span>
-                {initialData?.is_public ? (
-                  <Globe className="h-3 w-3 text-brand" />
-                ) : (
-                  <Lock className="h-3 w-3 text-text-dim" />
-                )}
-              </div>
-            </label>
-          </div>
+          <input
+            type="hidden"
+            name="is_public"
+            value={initialData ? (initialData.is_public ? "on" : "") : "on"}
+          />
         </div>
 
         {/* Right Column: Photo */}
