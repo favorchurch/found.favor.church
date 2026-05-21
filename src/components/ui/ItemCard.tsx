@@ -9,8 +9,6 @@ import {
   Edit2,
   Trash2,
   ChevronDown,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 import { format } from "date-fns";
 import type { ItemStatus } from "./StatusBadge";
@@ -123,24 +121,6 @@ export function ItemCard({
     });
   };
 
-  const togglePrivacy = () => {
-    const next = !currentItem.is_public;
-    setFormData((prev) => ({ ...prev, is_public: next }));
-    setOptimisticItem((prev) => ({ ...prev, is_public: next }));
-    setLoading(true);
-
-    toast.promise(upsertItem({ ...optimisticItem, is_public: next }), {
-      loading: "Updating privacy...",
-      success: next ? "Item is now public" : "Item is now private",
-      error: () => {
-        setFormData((prev) => ({ ...prev, is_public: !next }));
-        setOptimisticItem((prev) => ({ ...prev, is_public: !next }));
-        return "Failed to update privacy";
-      },
-      finally: () => setLoading(false),
-    });
-  };
-
   const handleDelete = () => {
     setShowDeleteModal(false);
     setLoading(true);
@@ -189,38 +169,6 @@ export function ItemCard({
           className,
         )}
       >
-        {/* Top Left Public/Private Badge (Glassmorphism) */}
-        {admin && (
-          <div className="absolute top-2 left-2 z-10">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (isEditing) {
-                  updateField("is_public", !currentItem.is_public);
-                } else {
-                  togglePrivacy();
-                }
-              }}
-              className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg shadow-sm backdrop-blur-md border transition-all cursor-pointer",
-                currentItem.is_public
-                  ? "bg-white/80 text-brand border-brand/20 hover:bg-white/90"
-                  : "bg-white/80 text-text-muted border-border-main hover:bg-white/90",
-              )}
-              title={
-                currentItem.is_public ? "Publicly Visible" : "Internal Check"
-              }
-            >
-              {currentItem.is_public ? (
-                <Eye className="h-3.5 w-3.5" />
-              ) : (
-                <EyeOff className="h-3.5 w-3.5" />
-              )}
-            </button>
-          </div>
-        )}
-
         {/* Image Section */}
         {!hideImage && (
           <div
@@ -244,9 +192,6 @@ export function ItemCard({
                   alt={currentItem.name}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                {!currentItem.is_public && (
-                  <div className="absolute inset-0 bg-white/20 shadow-[inset_0_0_60px_rgba(255,255,255,0.3)] pointer-events-none" />
-                )}
               </>
             ) : (
               <div className="flex flex-col items-center gap-2 text-text-dim opacity-40">
