@@ -19,3 +19,6 @@ BEGIN
   RETURN split_part(v_email, '@', 2) = 'favor.church';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth;
+
+GRANT EXECUTE ON FUNCTION public.search_admin_catalog_items(text, text, text[], date, date, text, integer, integer) TO service_role;
+GRANT EXECUTE ON FUNCTION public.get_admin_catalog_item_counts_by_date(date, date) TO service_role;

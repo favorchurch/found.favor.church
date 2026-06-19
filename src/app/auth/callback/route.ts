@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   const next = searchParams.get('next') ?? '/admin/dashboard'
 
   if (code) {
-    const supabase = await createClient()
+    const supabase = await createClient({ useServiceRole: false })
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer

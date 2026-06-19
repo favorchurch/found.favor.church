@@ -1,48 +1,23 @@
 "use client";
 
-import { useState } from "react";
 import { format } from "date-fns";
-import { Calendar, MapPin, CameraOff, ChevronRight, Eye, EyeOff } from "lucide-react";
+import { Calendar, MapPin, CameraOff, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { type Item } from "./ItemCard";
 import { StatusBadge } from "./StatusBadge";
-import { toast } from "sonner";
-import { cn } from "@/utils/cn";
 import { getPhotoUrl } from "@/utils/photo";
-import { upsertItem } from "@/app/admin/actions/items";
 
 interface AdminItemsTableProps {
   items: Item[];
 }
 
 export function AdminItemsTable({ items }: AdminItemsTableProps) {
-  const [privacyCache, setPrivacyCache] = useState<Record<string, boolean>>({});
-
-  const isPublic = (item: Item) =>
-    privacyCache[item.id] ?? item.is_public;
-
-  const togglePrivacy = async (item: Item) => {
-    const next = !isPublic(item);
-    setPrivacyCache((prev) => ({ ...prev, [item.id]: next }));
-    try {
-      await upsertItem({
-        ...item,
-        is_public: next,
-      });
-      toast.success(next ? "Item is now public" : "Item is now private");
-    } catch {
-      setPrivacyCache((prev) => ({ ...prev, [item.id]: !next }));
-      toast.error("Failed to update privacy");
-    }
-  };
-
   return (
     <div className="w-full overflow-hidden rounded-xl border border-border-main bg-surface shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-b border-border-main bg-surface-active/50">
-              <th className="px-4 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim w-12"></th>
               <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Item</th>
               <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Code</th>
               <th className="px-6 py-4 font-sans text-[10px] uppercase tracking-widest text-text-dim">Category</th>
@@ -61,28 +36,6 @@ export function AdminItemsTable({ items }: AdminItemsTableProps) {
                   key={item.id}
                   className="group hover:bg-surface-hover/50 transition-colors cursor-pointer"
                 >
-                  <td className="px-4 py-4">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        togglePrivacy(item);
-                      }}
-                      className={cn(
-                        "p-1.5 rounded-lg border transition-all cursor-pointer",
-                        isPublic(item)
-                          ? "bg-white/80 text-brand border-brand/20 hover:bg-white/90"
-                          : "bg-white/80 text-text-muted border-border-main hover:bg-white/90",
-                      )}
-                      title={isPublic(item) ? "Publicly Visible" : "Internal Check"}
-                    >
-                      {isPublic(item) ? (
-                        <Eye className="h-3.5 w-3.5" />
-                      ) : (
-                        <EyeOff className="h-3.5 w-3.5" />
-                      )}
-                    </button>
-                  </td>
                   <td className="px-6 py-4">
                     <Link href={`/admin/items/${item.id}`} className="flex items-center gap-4">
                       <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-border-main bg-surface-active flex items-center justify-center">

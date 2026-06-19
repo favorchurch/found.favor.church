@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
@@ -21,45 +21,19 @@ export async function updateSession(request: NextRequest) {
     supabaseKey,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
+        getAll() {
+          return request.cookies.getAll()
         },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-          // Create the next response with updated request headers
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
           response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
+            request,
           })
-          // Apply ALL cookies from the request to the response to ensure none are lost
-          // if multiple cookies are set during the same session update.
-          request.cookies.getAll().forEach((cookie) => {
-            response.cookies.set(cookie.name, cookie.value)
-          });
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.delete(name)
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          // Ensure all cookies (except the removed one) are present
-          request.cookies.getAll().forEach((cookie) => {
-            response.cookies.set(cookie.name, cookie.value)
-          });
-          // Explicitly set the removal on the response
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-            maxAge: 0,
-          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
         },
       },
     }

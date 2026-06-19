@@ -10,7 +10,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
   modal: React.ReactNode;
 }) {
-  const supabase = await createClient();
+  const supabase = await createClient({ useServiceRole: false });
   const { data: { user } } = await supabase.auth.getUser();
   const isDev = process.env.NODE_ENV === "development";
   const mockDevUser = {

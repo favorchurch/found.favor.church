@@ -1,7 +1,7 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-export async function createClient() {
+export async function createClient(options?: { useServiceRole?: boolean }) {
   const cookieStore = await cookies()
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -12,9 +12,10 @@ export async function createClient() {
       'placeholder-key',
       {
         cookies: {
-          get(name: string) { return cookieStore.get(name)?.value },
-          set() {},
-          remove() {},
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll() {},
         },
       }
     )
@@ -23,28 +24,24 @@ export async function createClient() {
   const isDev = process.env.NODE_ENV === 'development'
   const hasAuthCookie = cookieStore.getAll().some(c => c.name.includes('-auth-token'))
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY
-  const activeKey = (isDev && !hasAuthCookie && serviceKey) ? serviceKey : supabaseKey
+  const forceAnon = options?.useServiceRole === false
+  const activeKey = (isDev && !hasAuthCookie && serviceKey && !forceAnon) ? serviceKey : supabaseKey
 
   return createServerClient(
     supabaseUrl,
     activeKey,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
+        getAll() {
+          return cookieStore.getAll()
         },
-        set(name: string, value: string, options: CookieOptions) {
+        setAll(cookiesToSet) {
           try {
-            cookieStore.set({ name, value, ...options })
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
           } catch {
-            // The `set` method was called from a Server Component.
-          }
-        },
-        remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options })
-          } catch {
-            // The `delete` method was called from a Server Component.
+            // The `setAll` method was called from a Server Component.
           }
         },
       },
