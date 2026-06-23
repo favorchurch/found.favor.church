@@ -10,6 +10,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { PAGE_SIZE } from "@/utils/constants";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AdminCatalogControls } from "@/components/ui/AdminCatalogControls";
+import { CatalogSidebar } from "@/components/ui/CatalogSidebar";
 import {
   expandVenueFilter,
   isIsoDate,
@@ -110,38 +111,48 @@ export default async function DashboardPage({
         </div>
       </div>
 
-      <div className="space-y-8">
-        <AdminCatalogControls
-          initialQuery={query}
-          initialDateFrom={dateFrom}
-          initialDateTo={dateTo}
-          venues={allVenues}
-          activeVenue={venueFilter}
-          statusFilter={statusFilter}
-          sortBy={sortBy}
-        />
+      <div className="lg:grid lg:grid-cols-[320px_1fr] lg:items-start lg:gap-8">
+        <aside className="sticky top-8 hidden lg:block">
+          <CatalogSidebar
+            initialDateFrom={dateFrom}
+            initialDateTo={dateTo}
+            countsRpc="get_admin_catalog_item_counts_by_date"
+          />
+        </aside>
 
-        <p className="text-[11px] font-sans text-text-dim uppercase tracking-widest -mt-4">
-          {totalFiltered} item{totalFiltered !== 1 ? "s" : ""}
-          {dateFrom || dateTo
-            ? ` · ${
-                dateFrom && dateTo
-                  ? dateFrom === dateTo
-                    ? format(parseISO(dateFrom), "MMM d, yyyy")
-                    : `${format(parseISO(dateFrom), "MMM d")} – ${format(parseISO(dateTo), "MMM d, yyyy")}`
-                  : dateFrom
-                    ? `From ${format(parseISO(dateFrom), "MMM d, yyyy")}`
-                    : `Until ${format(parseISO(dateTo), "MMM d, yyyy")}`
-              }`
-            : ""}
-          {statusFilter !== "all" ? ` · ${statusFilter}` : ""}
-        </p>
+        <div className="space-y-8">
+          <AdminCatalogControls
+            initialQuery={query}
+            initialDateFrom={dateFrom}
+            initialDateTo={dateTo}
+            venues={allVenues}
+            activeVenue={venueFilter}
+            statusFilter={statusFilter}
+            sortBy={sortBy}
+          />
 
-        <ErrorBoundary>
-          <AdminItemsView items={dashboardItems} />
-        </ErrorBoundary>
+          <p className="text-[11px] font-sans text-text-dim uppercase tracking-widest -mt-4">
+            {totalFiltered} item{totalFiltered !== 1 ? "s" : ""}
+            {dateFrom || dateTo
+              ? ` · ${
+                  dateFrom && dateTo
+                    ? dateFrom === dateTo
+                      ? format(parseISO(dateFrom), "MMM d, yyyy")
+                      : `${format(parseISO(dateFrom), "MMM d")} – ${format(parseISO(dateTo), "MMM d, yyyy")}`
+                    : dateFrom
+                      ? `From ${format(parseISO(dateFrom), "MMM d, yyyy")}`
+                      : `Until ${format(parseISO(dateTo), "MMM d, yyyy")}`
+                }`
+              : ""}
+            {statusFilter !== "all" ? ` · ${statusFilter}` : ""}
+          </p>
 
-        <Pagination total={totalFiltered} />
+          <ErrorBoundary>
+            <AdminItemsView items={dashboardItems} />
+          </ErrorBoundary>
+
+          <Pagination total={totalFiltered} />
+        </div>
       </div>
     </div>
   );
