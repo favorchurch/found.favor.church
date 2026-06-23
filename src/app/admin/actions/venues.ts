@@ -12,6 +12,11 @@ const venueSchema = z.object({
   display_order: z.number().int().optional(),
 });
 
+/**
+ * Fetches all registered venues from the database, ordered by display order and name.
+ * 
+ * @returns Array of found item venues
+ */
 export async function getVenues() {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -24,6 +29,17 @@ export async function getVenues() {
   return data;
 }
 
+/**
+ * Creates or updates a venue entry.
+ * Validates hierarchy and structural rules:
+ * - A venue cannot be its own parent.
+ * - Parent venue must exist and not be a nested venue itself (only 1 level of nesting is allowed).
+ * - A venue with existing child venues cannot become a child itself.
+ * Requires admin privileges.
+ * 
+ * @param data - The validated venue schema details
+ * @returns Success status indicator
+ */
 export async function upsertVenue(data: z.infer<typeof venueSchema>) {
   const supabase = await createClient();
   const {
@@ -102,6 +118,17 @@ export async function upsertVenue(data: z.infer<typeof venueSchema>) {
   return { success: true };
 }
 
+/**
+ * Deletes a venue from the database.
+ * Reassigns any found items belonging to the deleted venue to another target venue.
+ * Resets parent_slug of any child venues to null so they become top-level venues.
+ * Cannot delete the last remaining venue.
+ * Requires admin privileges.
+ * 
+ * @param slug - The slug of the venue to delete
+ * @param reassignToSlug - The slug of the venue to reassign existing items to
+ * @returns Success status indicator
+ */
 export async function deleteVenue(slug: string, reassignToSlug: string) {
   const supabase = await createClient();
   const {
