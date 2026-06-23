@@ -1,6 +1,14 @@
+/**
+ * @file publicCatalogItemServer.ts
+ * @description Server-side database logic to fetch public catalog items with parent venues.
+ */
+
 import { createClient } from "@/utils/supabase/server";
 import type { PublicCatalogItem } from "@/utils/publicCatalogItem";
 
+/**
+ * Temporary interface matching the response row from public item select query before parent lookup.
+ */
 type PublicCatalogItemRow = Omit<PublicCatalogItem, "venue_name"> & {
   venue_name?: {
     name: string;
@@ -8,6 +16,14 @@ type PublicCatalogItemRow = Omit<PublicCatalogItem, "venue_name"> & {
   } | null;
 };
 
+/**
+ * Retrieves a single public catalog item by its ID.
+ * Performs necessary queries against Supabase to load the item, its category name,
+ * and builds the full nested parent/child venue representation if it exists.
+ * 
+ * @param id - UUID string of the lost/found item
+ * @returns PublicCatalogItem details or null if not found/error/not public
+ */
 export async function getPublicCatalogItem(
   id: string,
 ): Promise<PublicCatalogItem | null> {

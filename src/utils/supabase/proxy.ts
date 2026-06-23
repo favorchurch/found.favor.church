@@ -1,6 +1,23 @@
+/**
+ * @file proxy.ts
+ * @description Proxy/middleware helper to refresh sessions and enforce access rules.
+ */
+
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+/**
+ * Refreshes the user session and enforces page authorization.
+ * Specifically, this middleware/proxy:
+ * 1. Checks if a query `code` is present and routes the request to the auth callback.
+ * 2. Initializes the Supabase server client and updates cookie storage on request/response.
+ * 3. Enforces that `/admin` routes require authenticated access.
+ * 4. Bypasses authentication redirects on `/admin` during local development (`process.env.NODE_ENV === 'development'`)
+ *    when no authentication cookie is present, using the developer fallback.
+ * 
+ * @param request - Incoming NextRequest object
+ * @returns A NextResponse representing the redirection or next step in the middleware chain
+ */
 export async function updateSession(request: NextRequest) {
   const { searchParams, pathname } = request.nextUrl
   const code = searchParams.get('code')
