@@ -11,6 +11,11 @@ const categorySchema = z.object({
   prefix: z.string().min(2).max(4).toUpperCase(),
 });
 
+/**
+ * Fetches all found item categories from the database, ordered by name.
+ * 
+ * @returns Array of found item categories
+ */
 export async function getCategories() {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -22,6 +27,15 @@ export async function getCategories() {
   return data;
 }
 
+/**
+ * Creates or updates a found item category.
+ * Categories define standard item classifications (e.g. cash, clothing) and prefixes
+ * for item code generation (e.g. CSH, CLO).
+ * Requires admin privileges.
+ * 
+ * @param data - The validated category schema details
+ * @returns Success status indicator
+ */
 export async function upsertCategory(data: z.infer<typeof categorySchema>) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -63,6 +77,16 @@ export async function upsertCategory(data: z.infer<typeof categorySchema>) {
   return { success: true };
 }
 
+/**
+ * Deletes a category from the database.
+ * Reassigns any found items belonging to the deleted category to another target category.
+ * Cannot delete the last remaining category.
+ * Requires admin privileges.
+ * 
+ * @param slug - The slug of the category to delete
+ * @param reassignToSlug - The slug of the category to reassign existing items to
+ * @returns Success status indicator
+ */
 export async function deleteCategory(slug: string, reassignToSlug: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

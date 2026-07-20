@@ -42,6 +42,14 @@ interface FoundItemUpdate {
   disposed_by?: string | null;
 }
 
+/**
+ * Creates a new found item entry or updates an existing one.
+ * Requires admin privileges (email ending with @favor.church).
+ * In development mode, falls back to a mock developer user if no active session exists.
+ * 
+ * @param data - The validated item schema details
+ * @returns Success status indicator
+ */
 export async function upsertItem(data: z.infer<typeof itemSchema>) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -93,6 +101,12 @@ export async function upsertItem(data: z.infer<typeof itemSchema>) {
   return { success: true };
 }
 
+/**
+ * Archives found items that are in 'claimed' or 'disposed' status and were found more than 30 days ago.
+ * Requires admin privileges.
+ * 
+ * @returns Success status indicator
+ */
 export async function archiveOldItems() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -130,6 +144,15 @@ export async function archiveOldItems() {
   return { success: true };
 }
 
+/**
+ * Permanently deletes a found item from the database.
+ * Also removes any associated photo file from the Supabase storage bucket ('item-images').
+ * Requires admin privileges.
+ * 
+ * @param id - The UUID of the item to delete
+ * @param photoPath - Optional key/path of the associated photo in storage
+ * @returns Success status indicator
+ */
 export async function deleteItem(id: string, photoPath?: string | null) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -161,6 +184,11 @@ export async function deleteItem(id: string, photoPath?: string | null) {
   return { success: true };
 }
 
+/**
+ * Gets a count of items registered per date, used for timeline/calendar views in the admin portal.
+ * 
+ * @returns Array of date strings and their corresponding item counts
+ */
 export async function getAdminItemCountsByDate() {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_admin_catalog_item_counts_by_date");

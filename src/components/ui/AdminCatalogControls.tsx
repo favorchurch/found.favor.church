@@ -379,20 +379,6 @@ export function AdminCatalogControls({
           )}
         </div>
 
-        <div className="hidden lg:block border-t border-border-main pt-4">
-          <div className="mb-3 text-[10px] font-sans font-bold uppercase tracking-widest text-text-dim">
-            Filter by Date
-          </div>
-          <div className="max-w-xs">
-            <RangeCalendar
-              initialFrom={initialDateFrom}
-              initialTo={initialDateTo}
-              dateCounts={dateCounts}
-              onChange={(from, to) => setRange(from, to)}
-              onClear={() => setRange("", "")}
-            />
-          </div>
-        </div>
       </div>
     </div>
   );
