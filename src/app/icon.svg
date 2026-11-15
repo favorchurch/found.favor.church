@@ -1,4 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Favor Lost and Found icon">
-  <rect width="64" height="64" rx="12" fill="#ffffff"/>
-  <path d="M32 4a12 12 0 1 0 0 24 12 12 0 0 0 0-24ZM16 52a16 16 0 0 1 32 0H16Z" fill="#ff6a00"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#ff6a00"/><path d="M256 40 472 256 256 472 40 256Z" fill="none" stroke="#ffffff" stroke-width="22" stroke-linejoin="miter"/><g fill="#ffffff"><circle cx="256" cy="212" r="46"/><path d="M168 340a88 88 0 0 1 176 0Z"/></g></svg>
