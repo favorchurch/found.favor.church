@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { stripTypeScriptTypes } from 'node:module';
+import * as nodeModule from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { createContext, SourceTextModule, SyntheticModule } from 'node:vm';
 
@@ -10,7 +10,10 @@ export async function loadSourceModule(
   imports: Record<string, Record<string, unknown>>,
   env: Record<string, string> = {},
 ) {
-  const source = stripTypeScriptTypes(readFileSync(sourceUrl, 'utf8'));
+  // Node 22+ runtime support; the repository currently pins @types/node 20.
+  const stripTypes = (nodeModule as unknown as { stripTypeScriptTypes?: (code: string) => string }).stripTypeScriptTypes;
+  assert.ok(stripTypes, 'Node 22.16+ is required for offline source-module tests');
+  const source = stripTypes(readFileSync(sourceUrl, 'utf8'));
   const context = createContext({
     URL,
     console,
