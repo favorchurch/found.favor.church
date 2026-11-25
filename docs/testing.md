@@ -50,14 +50,14 @@ env -i PATH="$(dirname "$NODE_BIN"):/usr/bin:/bin" HOME=/tmp NODE_ENV=test LC_AL
 | Tier | Test files | Cases (pass/fail/skip) | First wall | Repeat wall | First user/system CPU | Repeat user/system CPU | First/repeat maximum RSS |
 | --- | ---: | --- | ---: | ---: | --- | --- | --- |
 | Before: original `main` | 3 | 12 (12/0/0) | 0.35 s | 0.21 s | 0.56 / 0.45 s | 0.45 / 0.13 s | 61,808 / 61,800 KiB |
-| After: `test:unit` | 5 | 28 (28/0/0) | 0.57 s | 0.47 s | 1.01 / 0.62 s | 0.94 / 0.29 s | 84,888 / 84,756 KiB |
-| After: `test:full` | 5 | 28 (28/0/0) | 0.45 s | 0.46 s | 0.90 / 0.34 s | 0.93 / 0.30 s | 82,452 / 82,460 KiB |
+| After (PR #6 head): `test:unit` | 5 | 28 (28/0/0) | 0.57 s | 0.47 s | 1.01 / 0.62 s | 0.94 / 0.29 s | 84,888 / 84,756 KiB |
+| After (PR #6 head): `test:full` | 5 | 28 (28/0/0) | 0.45 s | 0.46 s | 0.90 / 0.34 s | 0.93 / 0.30 s | 82,452 / 82,460 KiB |
 
-There are **0 snapshots, 0 skipped cases, and 0 existing failures** in both states. All original 3 files and 12 tests remain present, unchanged, and passing; 16 new cases were added. The increase in work is additional coverage, not an optimization comparison.
+There are **0 snapshots, 0 skipped cases, and 0 existing failures** in both states. All original 3 files and 12 tests remain present, unchanged, and passing. The measured runs above had 16 new cases (28 total). Review then added 4 auth edge cases (empty `code`, development forwarded host, origin fallback, callback-path proxy), so the suite now has 20 new cases and 32 total in both `test:unit` and `test:full`; timings were not re-measured for those 4 cases. The increase in work is additional coverage, not an optimization comparison.
 
 **Measurement caveats:** "First" means the first Node process in a measured pair, with the same command repeated immediately for "repeat"; the OS filesystem page cache was **not** cleared. This is process-cold vs. repeat, not guaranteed disk-cache-cold. GNU time's maximum RSS is the **largest measured process**, not aggregate parallel-worker RSS; CPU includes child processes. No Jest cache is involved and no worker cap is set. This is a test-runner baseline on a reconstructed source/test subset, not a measured full Next.js application build.
 
-The tier selection was also exercised with temporary, uncommitted test fixtures: a new `tests/integration/*.test.mts` case appeared in `test:full` (29 cases) but not `test:unit` (28); an intentionally failing `tests/live/*.test.mts` case ran in neither gate. The fixtures were removed.
+The tier selection was also exercised with temporary, uncommitted test fixtures: a new `tests/integration/*.test.mts` case appeared in `test:full` (29 cases at measurement time) but not `test:unit` (28); an intentionally failing `tests/live/*.test.mts` case ran in neither gate. The fixtures were removed.
 
 ## Next review gates
 
