@@ -97,10 +97,14 @@ To ease local setup and testing:
 
 ## Validation & Testing
 
-To run the ESLint validations locally:
+To run ESLint validations and the offline test gates locally:
 ```bash
 pnpm lint
+pnpm run test:unit
+pnpm run test:full
 ```
+
+The test commands require Node.js 22.16+ and use only built-in test tools; they do not require service credentials or `.env` files. The full gate covers all offline tests, while live-service and browser E2E suites remain separate. See [testing baseline and measurement instructions](docs/testing.md).
 
 ---
 
