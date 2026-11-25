@@ -34,5 +34,5 @@ export async function loadSourceModule(
     }, { context, identifier: specifier });
   });
   await sourceModule.evaluate();
-  return sourceModule.namespace;
+  return sourceModule.namespace as Record<string, unknown>;
 }

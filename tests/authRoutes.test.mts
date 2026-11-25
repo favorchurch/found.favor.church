@@ -89,6 +89,25 @@ test('OAuth callback honors forwarded host and relative next path in production'
   assert.equal(result.destination, 'https://proxy.example/admin/items');
 });
 
+test('OAuth callback with an empty code goes to the error page without creating a client', async () => {
+  const handler = await callback();
+  const result = await handler.GET(request('https://found.example/auth/callback?code='));
+  assert.equal(result.destination, 'https://found.example/auth/auth-code-error');
+  assert.equal(handler.getCalls(), 0);
+});
+
+test('OAuth callback ignores forwarded host in development', async () => {
+  const handler = await callback({ env: 'development' });
+  const result = await handler.GET(request('https://found.example/auth/callback?code=fixture&next=%2Fadmin%2Fitems', { 'x-forwarded-host': 'proxy.example' }));
+  assert.equal(result.destination, 'https://found.example/admin/items');
+});
+
+test('OAuth callback without forwarded host uses the request origin in production', async () => {
+  const handler = await callback();
+  const result = await handler.GET(request('https://found.example/auth/callback?code=fixture&next=%2Fadmin%2Fitems'));
+  assert.equal(result.destination, 'https://found.example/admin/items');
+});
+
 test('OAuth callback rejected exchange redirects to error page', async () => {
   const handler = await callback({ error: { message: 'synthetic failure' } });
   const result = await handler.GET(request('https://found.example/auth/callback?code=fixture'));
@@ -185,4 +204,11 @@ test('proxy keeps its documented development-only anonymous admin bypass', async
   const handler = await proxy({ user: null, env: 'development' });
   const result = await handler.updateSession(nextRequest('https://found.example/admin/items'));
   assert.equal(result.kind, 'next');
+});
+
+test('proxy lets the callback itself handle its code without redirecting again', async () => {
+  const handler = await proxy({ user: null });
+  const result = await handler.updateSession(nextRequest('https://found.example/auth/callback?code=fixture'));
+  assert.equal(result.kind, 'next');
+  assert.equal(handler.getClientCreated(), 1);
 });
