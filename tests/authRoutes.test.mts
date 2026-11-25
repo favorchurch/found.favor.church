@@ -55,7 +55,7 @@ async function callback(options: {
 } = {}) {
   let called = 0;
   let roleSetting: boolean | undefined;
-  const module = await loadSourceModule(callbackUrl, {
+  const loaded = await loadSourceModule(callbackUrl, {
     'next/server': { NextResponse: nextResponse },
     '@/utils/supabase/server': {
       createClient: async ({ useServiceRole }: { useServiceRole: boolean }) => {
@@ -65,7 +65,7 @@ async function callback(options: {
       },
     },
   }, { NODE_ENV: options.env ?? 'production' });
-  return { GET: module.GET as (request: unknown) => Promise<ReturnType<typeof response>>, getCalls: () => called, roleSetting: () => roleSetting };
+  return { GET: loaded.GET as (request: unknown) => Promise<ReturnType<typeof response>>, getCalls: () => called, roleSetting: () => roleSetting };
 }
 
 test('OAuth callback without a code goes to an error page without creating a client', async () => {
@@ -99,7 +99,7 @@ async function signout(user: unknown) {
   let signedOut = 0;
   let roleSetting: boolean | undefined;
   const revalidated: unknown[][] = [];
-  const module = await loadSourceModule(signoutUrl, {
+  const loaded = await loadSourceModule(signoutUrl, {
     'next/server': { NextResponse: nextResponse },
     'next/cache': { revalidatePath: (...args: unknown[]) => { revalidated.push(args); } },
     '@/utils/supabase/server': {
@@ -109,7 +109,7 @@ async function signout(user: unknown) {
       },
     },
   });
-  return { POST: module.POST as (request: unknown) => Promise<ReturnType<typeof response>>, getSignedOut: () => signedOut, revalidated, roleSetting: () => roleSetting };
+  return { POST: loaded.POST as (request: unknown) => Promise<ReturnType<typeof response>>, getSignedOut: () => signedOut, revalidated, roleSetting: () => roleSetting };
 }
 
 test('signed-in user is signed out without service role and redirected', async () => {
@@ -131,7 +131,7 @@ test('signout does not issue a sign-out call for anonymous users', async () => {
 
 async function proxy(options: { user?: unknown; env?: string; setCookie?: boolean } = {}) {
   let clientCreated = 0;
-  const module = await loadSourceModule(proxyUrl, {
+  const loaded = await loadSourceModule(proxyUrl, {
     'next/server': { NextResponse: nextResponse },
     '@supabase/ssr': {
       createServerClient: (_url: string, _key: string, config: { cookies: { setAll: (cookies: { name: string; value: string }[]) => void } }) => {
@@ -145,7 +145,7 @@ async function proxy(options: { user?: unknown; env?: string; setCookie?: boolea
       },
     },
   }, { NODE_ENV: options.env ?? 'production', NEXT_PUBLIC_SUPABASE_URL: 'https://example.invalid', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'fixture' });
-  return { updateSession: module.updateSession as (request: unknown) => Promise<ReturnType<typeof response>>, getClientCreated: () => clientCreated };
+  return { updateSession: loaded.updateSession as (request: unknown) => Promise<ReturnType<typeof response>>, getClientCreated: () => clientCreated };
 }
 
 test('proxy sends OAuth code requests to the callback before loading auth', async () => {
