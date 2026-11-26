@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { requireAdmin } from "@/lib/auth/admin";
 import { ItemForm } from "@/components/ui/ItemForm";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -6,19 +6,9 @@ import { getCategories } from "@/app/admin/actions/categories";
 import { getVenues } from "@/app/admin/actions/venues";
 
 export default async function NewItemPage() {
-  const supabase = await createClient();
-  const [
-    { data: { user } },
-    categories,
-    venues,
-  ] = await Promise.all([
-    supabase.auth.getUser(),
-    getCategories(),
-    getVenues(),
-  ]);
-
-  const isDev = process.env.NODE_ENV === "development";
-  const currentUserEmail = user?.email || (isDev ? "dev@favor.church" : undefined);
+  const admin = await requireAdmin({ redirect: true });
+  const [categories, venues] = await Promise.all([getCategories(), getVenues()]);
+  const currentUserEmail = admin.email;
 
   return (
     <div className="p-8 space-y-8">

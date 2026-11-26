@@ -1,8 +1,9 @@
 import { type NextRequest } from 'next/server'
-import { updateSession } from '@/utils/supabase/proxy'
+import { auth0 } from '@/lib/auth/session'
 
+/** Auth0 serves /auth/login, /auth/logout and /auth/callback and keeps the session cookie fresh. */
 export async function proxy(request: NextRequest) {
-  return await updateSession(request)
+  return await auth0.middleware(request)
 }
 
 export const config = {

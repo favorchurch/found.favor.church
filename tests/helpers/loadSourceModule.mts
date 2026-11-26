@@ -9,6 +9,7 @@ export async function loadSourceModule(
   sourceUrl: URL,
   imports: Record<string, Record<string, unknown>>,
   env: Record<string, string> = {},
+  globals: Record<string, unknown> = {},
 ) {
   // Node 22+ runtime support; the repository currently pins @types/node 20.
   const stripTypes = (nodeModule as unknown as { stripTypeScriptTypes?: (code: string) => string }).stripTypeScriptTypes;
@@ -17,6 +18,7 @@ export async function loadSourceModule(
   const context = createContext({
     URL,
     console,
+    ...globals,
     process: { env: { ...env } },
   });
   const sourceModule = new SourceTextModule(source, {

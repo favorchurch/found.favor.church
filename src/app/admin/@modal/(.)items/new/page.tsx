@@ -2,8 +2,10 @@ import { ItemForm } from "@/components/ui/ItemForm";
 import { ModalOverlay } from "@/components/ui/ModalOverlay";
 import { getCategories } from "@/app/admin/actions/categories";
 import { getVenues } from "@/app/admin/actions/venues";
+import { requireAdmin } from "@/lib/auth/admin";
 
 export default async function NewItemModalPage() {
+  await requireAdmin({ redirect: true });
   const [categories, venues] = await Promise.all([getCategories(), getVenues()]);
 
   return (

@@ -1,24 +1,8 @@
-"use client";
-
-import { createClient } from "@/utils/supabase/client";
 import { LogIn } from "lucide-react";
 
+const LOGIN_URL = "/auth/login?returnTo=%2Fadmin%2Fdashboard";
+
 export function LoginForm() {
-  const supabase = createClient();
-
-  const handleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (error) {
-      console.error("Error logging in:", error.message);
-    }
-  };
-
   return (
     <div className="w-full space-y-8 text-center p-8">
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-brand">
@@ -35,13 +19,13 @@ export function LoginForm() {
         </p>
       </div>
 
-      <button
-        onClick={handleLogin}
+      <a
+        href={LOGIN_URL}
         className="group relative flex w-full items-center justify-center gap-3 rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-brand/20 hover:bg-brand-dim transition-all"
       >
         <LogIn className="h-4 w-4" />
-        Sign in with Google
-      </button>
+        Sign in
+      </a>
 
       <p className="font-sans text-[10px] tracking-tight text-text-dim uppercase">
         Authorized personnel only

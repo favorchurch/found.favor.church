@@ -16,9 +16,10 @@ For security and privacy reasons, the general public cannot browse the catalog. 
 
 - **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript
-- **Database & Authentication**: Supabase (PostgreSQL, Supabase Auth with Google SSO, Row Level Security, pg_trgm for fuzzy text search, and schema triggers for sequential item code generation)
+- **Authentication**: Auth0 unified Favor login (`@auth0/nextjs-auth0` v4). Admin access requires an active membership in the Rock MNL Staff group.
+- **Database**: Supabase (PostgreSQL, Row Level Security, pg_trgm for fuzzy text search, and schema triggers for sequential item code generation). Supabase Auth is not used.
 - **Styling**: Tailwind CSS & Vanilla CSS
-- **Data Querying**: TanStack React Query, Server Actions, and `@supabase/ssr`
+- **Data Querying**: TanStack React Query, Server Actions, and `@supabase/supabase-js`
 - **UI Components & Icons**: `lucide-react`, `sonner` (toasts), and `date-fns`
 
 ---
@@ -30,14 +31,15 @@ For security and privacy reasons, the general public cannot browse the catalog. 
 │   ├── app/                      # Next.js pages, routing and server action controllers
 │   │   ├── admin/                # Internal admin dashboard, settings, and category pages
 │   │   │   ├── actions/          # Server actions for items, venues, and categories CRUD
-│   │   ├── auth/                 # OAuth callback handler for Supabase authentication
+│   │   ├── auth/                 # /auth/signout compatibility redirect (Auth0 serves /auth/login, /auth/logout, /auth/callback)
 │   │   ├── catalog/              # Redirects public visitors back to the landing page
-│   │   ├── login/                # Google SSO login page for church staff
+│   │   ├── login/                # Sign-in page that sends staff to Auth0
 │   │   ├── layout.tsx            # Main HTML layout wrapper
 │   │   └── page.tsx              # Public homepage with visitor contact instructions
 │   ├── components/               # React components (Admin shells, tables, cards, filters)
+│   ├── lib/auth/                 # Auth0 client, requireAdmin guard, and Rock MNL Staff membership check
 │   ├── utils/                    # Common functions, Supabase clients, filters, and constants
-│   └── proxy.ts                  # Next.js 16 entrypoint for request/session interception (Middleware)
+│   └── proxy.ts                  # Next.js 16 proxy that mounts the Auth0 routes and refreshes the session
 ├── supabase/
 │   ├── migrations/               # Incremental database migrations (tables, triggers, RLS)
 │   └── config.toml               # Configuration config for local Supabase emulator
@@ -72,13 +74,33 @@ For security and privacy reasons, the general public cannot browse the catalog. 
 
 ## Configuration & Environment Variables
 
-Create a `.env.local` file in the root directory. Use the following variable names:
+Copy `.env.example` to `.env.local` and fill in the values. Names only are listed here:
 
-| Environment Variable Name | Purpose | Example Placeholder |
-| --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | The base URL of the Supabase API instance | `https://ixyntblebucvslqexcqh.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public client key to query public endpoints | `<your-anon-key>` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Secret service key used to bypass RLS locally | `<your-service-role-key>` |
+| Environment Variable Name | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Base URL of the Supabase API instance |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public key for public catalog queries |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only key for admin data access. Used only after the MNL Staff check passes. Never give it a `NEXT_PUBLIC_` name |
+| `AUTH0_DOMAIN` | Auth0 tenant domain |
+| `AUTH0_CLIENT_ID` | Client ID of the existing Auth0 application |
+| `AUTH0_CLIENT_SECRET` | Client secret of the existing Auth0 application |
+| `AUTH0_SECRET` | Random string used to encrypt the session cookie |
+| `AUTH0_AUDIENCE` | Optional. API audience for sign-in; defaults to `https://favorchurch.au.auth0.com/userinfo`. Set it on tenants with a different identifier (e.g. preview) |
+| `APP_BASE_URL` | Public base URL of this app (for example the production origin) |
+| `ROCK_API_URL` | Base URL of the Rock instance used for the staff check |
+| `ROCK_API_KEY` | Rock REST API key that can read group members |
+| `ROCK_MNL_STAFF_GROUP_ID` | Numeric id of the Rock MNL Staff group |
+
+### Authentication
+
+The app reuses the existing Favor Church Auth0 applications. It does not create new ones, so the app's URLs must be registered on the application it uses:
+
+- Allowed Callback URLs: `<APP_BASE_URL>/auth/callback`
+- Allowed Logout URLs: `<APP_BASE_URL>`
+
+Auth0 serves `/auth/login`, `/auth/logout` and `/auth/callback` from `src/proxy.ts`. Admin access is checked on the server by `requireAdmin` in `src/lib/auth/admin.ts`, which runs in `src/app/admin/layout.tsx` and in every admin server action. It requires `email_verified` to be true, a `https://auth.favor.church/rock_person_id` claim, and an active membership in the Rock group `ROCK_MNL_STAFF_GROUP_ID`. Anything missing, any Rock error, and non-membership all refuse. Signed-out visitors go to `/login`. Signed-in non-staff go to `/`.
+
+Admin data access uses a server-only Supabase client with `SUPABASE_SERVICE_ROLE_KEY`, created only after `requireAdmin` passes. Public pages keep the anon client. Item audit columns store `null` for `created_by`/`updated_by` and the verified Auth0 email in `created_by_email`/`updated_by_email`.
 
 ### Database Migrations
 
@@ -89,9 +111,7 @@ Database tables, relationships, Row Level Security (RLS) policies, and triggers 
 
 ### Local Development Bypass
 
-To ease local setup and testing:
-- If `NODE_ENV` is set to `development` and no authentication token is detected, the database client defaults to using `SUPABASE_SERVICE_ROLE_KEY` to bypass RLS checks.
-- A mock user (`dev@favor.church` with UUID `00000000-0000-0000-0000-000000000000`) is injected as the active session. This allows full developer access to the `/admin/dashboard` features without requiring Google SSO configurations locally.
+When `NODE_ENV` is `development` (that is, `pnpm dev`) and not running on Vercel, a request with no Auth0 session is treated as the mock admin `dev@favor.church`, so `/admin/dashboard` works without Auth0 or Rock configured. This never activates in `next build`, `next start`, or a Vercel preview or production deployment. A signed-in user is always checked normally. Admin data access still needs `SUPABASE_SERVICE_ROLE_KEY`.
 
 ---
 

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { createClient } from "@/utils/supabase/server";
+import { getAdminClient } from "@/utils/supabase/admin";
 import { type Item } from "@/components/ui/ItemCard";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
@@ -48,7 +48,7 @@ export default async function DashboardPage({
   const dateFrom = isIsoDate(params.from) ? params.from : "";
   const dateTo = isIsoDate(params.to) ? params.to : "";
 
-  const supabase = await createClient();
+  const { supabase } = await getAdminClient({ redirect: true });
 
   const { data: venues, error: venuesError } = await supabase
     .from("found_item_venues")

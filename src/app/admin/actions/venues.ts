@@ -1,9 +1,8 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { getAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { isAdmin } from "@/utils/admin";
 
 const venueSchema = z.object({
   slug: z.string().min(1).max(50),
@@ -18,7 +17,7 @@ const venueSchema = z.object({
  * @returns Array of found item venues
  */
 export async function getVenues() {
-  const supabase = await createClient();
+  const { supabase } = await getAdminClient();
   const { data, error } = await supabase
     .from("found_item_venues")
     .select("*")
@@ -41,21 +40,7 @@ export async function getVenues() {
  * @returns Success status indicator
  */
 export async function upsertVenue(data: z.infer<typeof venueSchema>) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const isDev = process.env.NODE_ENV === "development";
-  const mockDevUser = {
-    id: "00000000-0000-0000-0000-000000000000",
-    email: "dev@favor.church",
-  };
-  const effectiveUser = user || (isDev ? mockDevUser : null);
-
-  if (!effectiveUser || !isAdmin(effectiveUser.email)) {
-    throw new Error("Unauthorized");
-  }
+  const { supabase } = await getAdminClient();
 
   const validatedData = venueSchema.parse(data);
   const parentSlug = validatedData.parent_slug || null;
@@ -130,21 +115,7 @@ export async function upsertVenue(data: z.infer<typeof venueSchema>) {
  * @returns Success status indicator
  */
 export async function deleteVenue(slug: string, reassignToSlug: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const isDev = process.env.NODE_ENV === "development";
-  const mockDevUser = {
-    id: "00000000-0000-0000-0000-000000000000",
-    email: "dev@favor.church",
-  };
-  const effectiveUser = user || (isDev ? mockDevUser : null);
-
-  if (!effectiveUser || !isAdmin(effectiveUser.email)) {
-    throw new Error("Unauthorized");
-  }
+  const { supabase } = await getAdminClient();
 
   if (slug === reassignToSlug) {
     throw new Error("Cannot reassign to the same venue");
