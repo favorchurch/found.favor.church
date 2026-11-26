@@ -68,14 +68,17 @@ test('the login form sends users to Auth0 login and returns to the dashboard', (
   assert.doesNotMatch(source, /signInWithOAuth|supabase/i);
 });
 
-test('the Auth0 client uses the shared audience and scope and reads no env at import', async () => {
+const sessionUrl = new URL('../src/lib/auth/session.ts', import.meta.url);
+
+async function loadSession(env: Record<string, string>) {
   const configs: unknown[] = [];
   class FakeAuth0Client { constructor(config: unknown) { configs.push(config); } }
-  const loaded = await loadSourceModule(
-    new URL('../src/lib/auth/session.ts', import.meta.url),
-    { '@auth0/nextjs-auth0/server': { Auth0Client: FakeAuth0Client } },
-    {},
-  );
+  const loaded = await loadSourceModule(sessionUrl, { '@auth0/nextjs-auth0/server': { Auth0Client: FakeAuth0Client } }, env);
+  return { configs, loaded };
+}
+
+test('the Auth0 client defaults to the prod audience and reads no other env at import', async () => {
+  const { configs, loaded } = await loadSession({});
   assert.equal(configs.length, 1);
   assert.deepEqual(plain(configs[0]), {
     authorizationParameters: {
@@ -84,4 +87,16 @@ test('the Auth0 client uses the shared audience and scope and reads no env at im
     },
   });
   assert.equal(loaded.AUTH0_AUDIENCE, 'https://favorchurch.au.auth0.com/userinfo');
+});
+
+test('AUTH0_AUDIENCE overrides the audience sent to Auth0', async () => {
+  const audience = 'https://favorchurch-preview.au.auth0.com/userinfo';
+  const { configs, loaded } = await loadSession({ AUTH0_AUDIENCE: audience });
+  assert.equal(plain(configs[0]).authorizationParameters.audience, audience);
+  assert.equal(loaded.AUTH0_AUDIENCE, audience);
+});
+
+test('an empty AUTH0_AUDIENCE falls back to the prod default', async () => {
+  const { configs } = await loadSession({ AUTH0_AUDIENCE: '' });
+  assert.equal(plain(configs[0]).authorizationParameters.audience, 'https://favorchurch.au.auth0.com/userinfo');
 });

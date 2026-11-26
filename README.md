@@ -85,6 +85,7 @@ Copy `.env.example` to `.env.local` and fill in the values. Names only are liste
 | `AUTH0_CLIENT_ID` | Client ID of the existing Auth0 application |
 | `AUTH0_CLIENT_SECRET` | Client secret of the existing Auth0 application |
 | `AUTH0_SECRET` | Random string used to encrypt the session cookie |
+| `AUTH0_AUDIENCE` | Optional. API audience for sign-in; defaults to `https://favorchurch.au.auth0.com/userinfo`. Set it on tenants with a different identifier (e.g. preview) |
 | `APP_BASE_URL` | Public base URL of this app (for example the production origin) |
 | `ROCK_API_URL` | Base URL of the Rock instance used for the staff check |
 | `ROCK_API_KEY` | Rock REST API key that can read group members |
