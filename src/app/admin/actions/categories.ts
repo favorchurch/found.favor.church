@@ -1,9 +1,8 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { getAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { isAdmin } from "@/utils/admin";
 
 const categorySchema = z.object({
   slug: z.string().min(1).max(50),
@@ -17,7 +16,7 @@ const categorySchema = z.object({
  * @returns Array of found item categories
  */
 export async function getCategories() {
-  const supabase = await createClient();
+  const { supabase } = await getAdminClient();
   const { data, error } = await supabase
     .from("found_item_categories")
     .select("*")
@@ -37,19 +36,7 @@ export async function getCategories() {
  * @returns Success status indicator
  */
 export async function upsertCategory(data: z.infer<typeof categorySchema>) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const isDev = process.env.NODE_ENV === "development";
-  const mockDevUser = {
-    id: "00000000-0000-0000-0000-000000000000",
-    email: "dev@favor.church",
-  };
-  const effectiveUser = user || (isDev ? mockDevUser : null);
-
-  if (!effectiveUser || !isAdmin(effectiveUser.email)) {
-    throw new Error("Unauthorized");
-  }
+  const { supabase } = await getAdminClient();
 
   const validatedData = categorySchema.parse(data);
 
@@ -88,19 +75,7 @@ export async function upsertCategory(data: z.infer<typeof categorySchema>) {
  * @returns Success status indicator
  */
 export async function deleteCategory(slug: string, reassignToSlug: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const isDev = process.env.NODE_ENV === "development";
-  const mockDevUser = {
-    id: "00000000-0000-0000-0000-000000000000",
-    email: "dev@favor.church",
-  };
-  const effectiveUser = user || (isDev ? mockDevUser : null);
-
-  if (!effectiveUser || !isAdmin(effectiveUser.email)) {
-    throw new Error("Unauthorized");
-  }
+  const { supabase } = await getAdminClient();
 
   if (slug === reassignToSlug) {
     throw new Error("Cannot reassign to the same category");

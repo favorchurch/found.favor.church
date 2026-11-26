@@ -11,6 +11,7 @@ import imageCompression from "browser-image-compression";
 import { ConfirmModal } from "./ConfirmModal";
 import { getPhotoUrl } from "@/utils/photo";
 import { upsertItem, deleteItem } from "@/app/admin/actions/items";
+import { createPhotoUploadUrl, removePhoto } from "@/app/admin/actions/photos";
 import { toast } from "sonner";
 
 interface ItemFormProps {
@@ -172,25 +173,21 @@ export function ItemForm({
 
         // Handle Image Upload / Removal
         if (removedPhoto && initialData?.photo_path) {
-          await supabase.storage
-            .from("item-images")
-            .remove([initialData.photo_path]);
+          await removePhoto(initialData.photo_path);
           photo_path = null;
         } else if (imageFile) {
-          const fileExt = imageFile.name.split(".").pop();
-          const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-          const { data: uploadData, error: uploadError } = await supabase.storage
+          const fileExt = imageFile.name.split(".").pop() ?? "";
+          const upload = await createPhotoUploadUrl(fileExt);
+          const { error: uploadError } = await supabase.storage
             .from("item-images")
-            .upload(fileName, imageFile);
+            .uploadToSignedUrl(upload.path, upload.token, imageFile);
 
           if (uploadError) throw uploadError;
-          photo_path = uploadData.path;
+          photo_path = upload.path;
 
           // Cleanup old image if we're replacing it
           if (initialData?.photo_path) {
-            await supabase.storage
-              .from("item-images")
-              .remove([initialData.photo_path]);
+            await removePhoto(initialData.photo_path);
           }
         }
 

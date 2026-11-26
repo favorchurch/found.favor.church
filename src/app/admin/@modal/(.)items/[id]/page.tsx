@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { getAdminClient } from "@/utils/supabase/admin";
 import { ItemForm } from "@/components/ui/ItemForm";
 import { notFound } from "next/navigation";
 import { ModalOverlay } from "@/components/ui/ModalOverlay";
@@ -11,7 +11,7 @@ export default async function EditItemModalPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await createClient();
+  const { supabase } = await getAdminClient({ redirect: true });
 
   const [{ data: item, error }, categories, venues] = await Promise.all([
     supabase

@@ -1,9 +1,8 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { getAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { isAdmin } from "@/utils/admin";
 
 const itemSchema = z.object({
   id: z.string().uuid().optional(),
@@ -33,8 +32,9 @@ interface FoundItemUpdate {
   is_public: boolean;
   photo_path?: string | null;
   updated_at: string;
-  updated_by?: string;
-  created_by?: string;
+  updated_by: null;
+  updated_by_email: string;
+  created_by?: null;
   created_by_email?: string;
   claimed_date?: string | null;
   claimed_by?: string | null;
@@ -44,40 +44,25 @@ interface FoundItemUpdate {
 
 /**
  * Creates a new found item entry or updates an existing one.
- * Requires admin privileges (email ending with @favor.church).
+ * Requires an active MNL Staff member with a verified Auth0 email. Audit columns store the
+ * verified email only (the Supabase user ids stay null).
  * In development mode, falls back to a mock developer user if no active session exists.
  * 
  * @param data - The validated item schema details
  * @returns Success status indicator
  */
 export async function upsertItem(data: z.infer<typeof itemSchema>) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const isDev = process.env.NODE_ENV === "development";
-  const mockDevUser = {
-    id: "00000000-0000-0000-0000-000000000000",
-    email: "dev@favor.church",
-  };
-  const effectiveUser = user || (isDev ? mockDevUser : null);
-
-  if (!effectiveUser || !isAdmin(effectiveUser.email)) {
-    throw new Error("Unauthorized");
-  }
+  const { admin, supabase } = await getAdminClient();
 
   const validatedData = itemSchema.parse(data);
   const { id, ...itemFields } = validatedData;
 
-  const isMockId = effectiveUser.id === "00000000-0000-0000-0000-000000000000";
-
   const itemData: FoundItemUpdate = {
     ...itemFields,
     updated_at: new Date().toISOString(),
-    updated_by: isMockId ? undefined : effectiveUser.id,
+    updated_by: null,
+    updated_by_email: admin.email,
   };
-  if (isMockId) {
-    delete (itemData as unknown as Record<string, unknown>).updated_by;
-  }
 
   if (id) {
     const { error } = await supabase
@@ -86,10 +71,8 @@ export async function upsertItem(data: z.infer<typeof itemSchema>) {
       .eq("id", id);
     if (error) throw error;
   } else {
-    if (!isMockId) {
-      itemData.created_by = effectiveUser.id;
-    }
-    itemData.created_by_email = effectiveUser.email || "Unknown";
+    itemData.created_by = null;
+    itemData.created_by_email = admin.email;
     const { error } = await supabase
       .from("found_items")
       .insert([itemData]);
@@ -108,31 +91,18 @@ export async function upsertItem(data: z.infer<typeof itemSchema>) {
  * @returns Success status indicator
  */
 export async function archiveOldItems() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const isDev = process.env.NODE_ENV === "development";
-  const mockDevUser = {
-    id: "00000000-0000-0000-0000-000000000000",
-    email: "dev@favor.church",
-  };
-  const effectiveUser = user || (isDev ? mockDevUser : null);
-
-  if (!effectiveUser || !isAdmin(effectiveUser.email)) {
-    throw new Error("Unauthorized");
-  }
+  const { admin, supabase } = await getAdminClient();
 
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const dateStr = thirtyDaysAgo.toISOString().split('T')[0];
 
-  const isMockId = effectiveUser.id === "00000000-0000-0000-0000-000000000000";
-
   const { error } = await supabase
     .from("found_items")
-    .update({ 
+    .update({
       archived_at: new Date().toISOString(),
-      ...(isMockId ? {} : { updated_by: effectiveUser.id })
+      updated_by: null,
+      updated_by_email: admin.email,
     })
     .in("status", ["claimed", "disposed"])
     .lt("date_found", dateStr)
@@ -154,19 +124,7 @@ export async function archiveOldItems() {
  * @returns Success status indicator
  */
 export async function deleteItem(id: string, photoPath?: string | null) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const isDev = process.env.NODE_ENV === "development";
-  const mockDevUser = {
-    id: "00000000-0000-0000-0000-000000000000",
-    email: "dev@favor.church",
-  };
-  const effectiveUser = user || (isDev ? mockDevUser : null);
-
-  if (!effectiveUser || !isAdmin(effectiveUser.email)) {
-    throw new Error("Unauthorized");
-  }
+  const { supabase } = await getAdminClient();
 
   if (photoPath) {
     await supabase.storage.from("item-images").remove([photoPath]);
@@ -190,7 +148,7 @@ export async function deleteItem(id: string, photoPath?: string | null) {
  * @returns Array of date strings and their corresponding item counts
  */
 export async function getAdminItemCountsByDate() {
-  const supabase = await createClient();
+  const { supabase } = await getAdminClient();
   const { data, error } = await supabase.rpc("get_admin_catalog_item_counts_by_date");
   if (error) throw error;
   return data as { date_found: string; item_count: number }[];

@@ -1,14 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
 import { Trash2, ShieldAlert, Archive, RefreshCw, AlertTriangle, CheckCircle2, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { archiveOldItems } from '@/app/admin/actions/items'
+import { deleteOrphanedPhotos, scanOrphanedPhotos } from '@/app/admin/actions/photos'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 
 export default function CleanupPage() {
-  const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(false)
   const [archiving, setArchiving] = useState(false)
@@ -19,33 +18,14 @@ export default function CleanupPage() {
   const checkOrphans = async () => {
     setChecking(true)
     try {
-      // 1. List all files in storage
-      const { data: files, error: storageError } = await supabase.storage
-        .from('item-images')
-        .list('', { limit: 1000 })
-      
-      if (storageError) throw storageError
-
-      // 2. Get all photo_paths from DB
-      const { data: items, error: dbError } = await supabase
-        .from('found_items')
-        .select('photo_path')
-      
-      if (dbError) throw dbError
-
-      const linkedPaths = new Set(items.map(i => i.photo_path).filter(Boolean))
-      const foundOrphans = (files || [])
-        .filter(f => f.name !== '.emptyFolderPlaceholder')
-        .filter(f => !linkedPaths.has(f.name))
-        .map(f => f.name)
-
-      setOrphans(foundOrphans)
+      const result = await scanOrphanedPhotos()
+      setOrphans(result.orphans)
       setStats({
-        totalFiles: files?.length || 0,
-        linkedFiles: linkedPaths.size
+        totalFiles: result.totalFiles,
+        linkedFiles: result.linkedFiles
       })
-      
-      if (foundOrphans.length === 0) {
+
+      if (result.orphans.length === 0) {
         toast.success("No orphaned images found! Storage is clean.")
       }
     } catch (error) {
@@ -60,13 +40,9 @@ export default function CleanupPage() {
     if (orphans.length === 0) return
     setLoading(true)
     try {
-      const { error } = await supabase.storage
-        .from('item-images')
-        .remove(orphans)
-      
-      if (error) throw error
-      
-      toast.success(`Successfully deleted ${orphans.length} orphaned images`)
+      const { deleted } = await deleteOrphanedPhotos(orphans)
+
+      toast.success(`Successfully deleted ${deleted} orphaned images`)
       setOrphans([])
     } catch (error) {
       console.error("Cleanup execution failed:", error)
