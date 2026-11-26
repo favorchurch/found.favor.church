@@ -162,15 +162,18 @@ export function AdminSidebar({
               <p className="text-[10px] text-white/60 uppercase font-sans tracking-tighter">Admin Staff</p>
             </div>
           </div>
-          <form action="/auth/signout" method="POST">
-            <button className={cn(
+          {/* Plain anchor, not next/link: a prefetch must never hit the logout handler. */}
+          <a
+            href="/auth/logout"
+            className={cn(
               "flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all",
               isCollapsed ? "justify-center" : "justify-start"
-            )} title="Sign Out">
-              <LogOut className="h-4 w-4 shrink-0" />
-              {!isCollapsed && <span>Sign Out</span>}
-            </button>
-          </form>
+            )}
+            title="Sign Out"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            {!isCollapsed && <span>Sign Out</span>}
+          </a>
         </div>
       </aside>
     </>

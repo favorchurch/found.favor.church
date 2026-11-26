@@ -1,8 +1,16 @@
-import { type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { auth0 } from '@/lib/auth/session'
+
+/**
+ * Legacy sign-out endpoint (old form posts). Auth0 middleware would treat it as a plain
+ * request and rewrite the rolling session cookie on the response that redirects to
+ * /auth/logout, so it is passed through untouched.
+ */
+const LEGACY_SIGNOUT_PATH = '/auth/signout'
 
 /** Auth0 serves /auth/login, /auth/logout and /auth/callback and keeps the session cookie fresh. */
 export async function proxy(request: NextRequest) {
+  if (new URL(request.url).pathname === LEGACY_SIGNOUT_PATH) return NextResponse.next()
   return await auth0.middleware(request)
 }
 

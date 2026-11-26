@@ -5,6 +5,7 @@ import { loadSourceModule } from './helpers/loadSourceModule.mts';
 
 const signoutUrl = new URL('../src/app/auth/signout/route.ts', import.meta.url);
 const proxyUrl = new URL('../src/proxy.ts', import.meta.url);
+const sidebarUrl = new URL('../src/components/admin/AdminSidebar.tsx', import.meta.url);
 const loginFormUrl = new URL('../src/components/auth/LoginForm.tsx', import.meta.url);
 
 /** Values built inside the VM context have a different Object prototype; compare plain copies. */
@@ -40,7 +41,7 @@ test('proxy delegates every request to the Auth0 middleware and keeps its matche
   const seen: unknown[] = [];
   const middlewareResult = { kind: 'auth0-response' };
   const loaded = await loadSourceModule(proxyUrl, {
-    'next/server': {},
+    'next/server': { NextResponse: { next: () => ({ kind: 'next' }) } },
     '@/lib/auth/session': { auth0: { middleware: async (request: unknown) => { seen.push(request); return middlewareResult; } } },
   });
   const request = { url: 'https://found.example/auth/login' };
@@ -55,6 +56,25 @@ test('proxy delegates every request to the Auth0 middleware and keeps its matche
   assert.equal(regex.test('/auth/callback'), true);
   assert.equal(regex.test('/admin/dashboard'), true);
   assert.equal(regex.test('/_next/static/chunk.js'), false);
+});
+
+test('proxy keeps the legacy signout hop out of the Auth0 middleware so no rolling session cookie is written on it', async () => {
+  const seen: unknown[] = [];
+  const loaded = await loadSourceModule(proxyUrl, {
+    'next/server': { NextResponse: { next: () => ({ kind: 'next' }) } },
+    '@/lib/auth/session': { auth0: { middleware: async (request: unknown) => { seen.push(request); return { kind: 'auth0-response' }; } } },
+  });
+  const proxy = loaded.proxy as (request: unknown) => Promise<unknown>;
+  assert.deepEqual(plain(await proxy({ url: 'https://found.example/auth/signout', method: 'POST' })), { kind: 'next' });
+  assert.equal(seen.length, 0);
+  assert.deepEqual(plain(await proxy({ url: 'https://found.example/auth/logout', method: 'GET' })), { kind: 'auth0-response' });
+  assert.equal(seen.length, 1);
+});
+
+test('the sidebar Sign Out is a plain anchor to the Auth0 logout route', () => {
+  const source = readFileSync(sidebarUrl, 'utf8');
+  assert.match(source, /<a\s+href="\/auth\/logout"/);
+  assert.doesNotMatch(source, /auth\/signout|<form/);
 });
 
 test('proxy does not treat a ?code= query as a Supabase exchange', async () => {
