@@ -46,7 +46,7 @@ interface FoundItemUpdate {
  * Creates a new found item entry or updates an existing one.
  * Requires an active MNL Staff member with a verified Auth0 email. Audit columns store the
  * verified email only (the Supabase user ids stay null).
- * In development mode, falls back to a mock developer user if no active session exists.
+ * The development-only mock admin (`next dev` outside Vercel) is resolved inside requireAdmin; it never applies elsewhere.
  * 
  * @param data - The validated item schema details
  * @returns Success status indicator
