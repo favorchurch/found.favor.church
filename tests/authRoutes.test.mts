@@ -73,7 +73,10 @@ const sessionUrl = new URL('../src/lib/auth/session.ts', import.meta.url);
 async function loadSession(env: Record<string, string>) {
   const configs: unknown[] = [];
   class FakeAuth0Client { constructor(config: unknown) { configs.push(config); } }
-  const loaded = await loadSourceModule(sessionUrl, { '@auth0/nextjs-auth0/server': { Auth0Client: FakeAuth0Client } }, env);
+  const loaded = await loadSourceModule(sessionUrl, {
+    '@auth0/nextjs-auth0/server': { Auth0Client: FakeAuth0Client, filterDefaultIdTokenClaims: (claims: unknown) => claims },
+    '@/lib/auth/claims': { ROCK_PERSON_ID_CLAIM: 'https://auth.favor.church/rock_person_id' },
+  }, env);
   return { configs, loaded };
 }
 

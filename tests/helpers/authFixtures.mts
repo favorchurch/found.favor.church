@@ -68,6 +68,7 @@ export async function loadAdminGuard(options: {
       },
     },
     '@/lib/auth/rock': rock,
+    '@/lib/auth/claims': { ROCK_PERSON_ID_CLAIM: CLAIM },
   }, env, { Number });
   return {
     requireAdmin: admin.requireAdmin as (options?: { redirect?: boolean }) => Promise<{ email: string; personId: number | null }>,

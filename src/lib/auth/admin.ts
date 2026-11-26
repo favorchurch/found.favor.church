@@ -3,8 +3,7 @@ import { cache } from "react";
 import { redirect, unstable_rethrow } from "next/navigation";
 import { auth0 } from "@/lib/auth/session";
 import { isActiveMnlStaffMember } from "@/lib/auth/rock";
-
-export const ROCK_PERSON_ID_CLAIM = "https://auth.favor.church/rock_person_id";
+import { ROCK_PERSON_ID_CLAIM } from "@/lib/auth/claims";
 
 export interface AdminUser {
   /** Verified Auth0 email. */
